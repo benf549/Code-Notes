@@ -256,7 +256,7 @@ The Variance of y: $Var(y;\eta) = \frac{\partial^2}{\partial\eta^2}a(\eta)$
 Any member of the Exponential family can be chosen for GLM. Overall we make the following assumptions when using a GLM:
 
 1. $y|x;$ ~ $Exponential\ Family (\eta)$ 
-2. $\eta = \theta^Tx$        where        $\theta \in \R^n, x\in\R^n $
+2. $\eta = \theta^Tx$        where        $\theta \in \mathbb{R}^{n}, x\in \mathbb{R}^{n}$
 3. When testing, $h_\theta (x) = E(y|x;\theta)$ is output
 
 **Testing**: we are using the linear model $\theta^Tx$ and that gives us an output which we can pass into the Exponential Family PDF as $\eta$. The Exponential family is chosen based on the type of data that we have and an appropriate b, a, and T are chosen based on that function. Then the expected value of the output of the linear model passed into the Exponential Family will give the prediction made for y.
@@ -277,7 +277,7 @@ The SoftMax function can be viewed as a GLM. Here we look at it as a form of cro
 
 As before we have:
 
-$x^{(i)} \in \R^n$ 
+$x^{(i)} \in \mathbb{R}^n$ 
 
 k = # of classes
 
@@ -289,7 +289,7 @@ In logistic regression, we had **just one theta** for each input and bias corres
 
 Now we will have **a theta for each input and bias that is tuned for each possible classification**. Thus, we represent theta as a matrix of values with each column? representing a possible classification.
 $$
-\theta_{class} \in \R^n
+\theta_{class} \in \mathbb{R}^{n}
 $$
 Where the overall theta can be written as a $(k \times n)$ matrix where n is the number of dimensions of input data and k is the number of classes.:
 

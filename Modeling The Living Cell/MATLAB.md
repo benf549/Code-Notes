@@ -258,7 +258,7 @@ while i < 20
 end
 ```
 
-### Matrix Functions
+### Matrix Methods
 
 ```matlab
 m3 = [2 3 4; 5 6 7; 8 9 10]
@@ -645,5 +645,26 @@ title('Money per Day')
 ```matlab
 figure(2)
 bar(xVals, yVals, 'r')
+```
+
+# Experience Notes
+
+###### Plotting
+
+When plotting, you create a new figure by running `figure(n)` to create figure n. 
+
+Plotting in 3D (from PS1)
+
+```matlab
+x  = -5:5;
+y = -10:10;
+
+[X, Y] = meshgrid(x, y);
+Z = X.^2 .* cos(X) - Y.^2;
+
+figure(1)
+surf(X, Y, Z)
+figure(2)
+contour(X, Y, Z)
 ```
 

@@ -132,7 +132,134 @@ Works with flow cells which this time are super small pores that hold single str
 
 Has a much lower accuracy than Illumina. Error rate at around 15%. But, you have very long reads, so you should be able to compare. Illumina has <1% error rate on the other hand. 
 
-###### Genomes and Genome Assembley
+###### Genomes and Genome Assembly
 
 Today, 10s of thousands of genomes have been sequenced. Once DNA has been sequenced, the reads need to be assembled. 
 
+## 02/02/21
+
+### Genome Assembly Continued
+
+When Assembling a genome, we have paired reads where we have both ends of the fragments are labelled. We then have reads that overlap. An assembler identifies the sequences that overlap.
+
+Sequencing Gap - We know the order and orientation of the contigs and have at least one clone spanning the gap
+
+Physical Gaps - We dont know anything about because we dont have any contigs or fragments to bridge the gap.
+
+A contig is a region of the sequences that have many overlaps. A 
+
+We assemble the fragments into contigs, then the contigs get assembled into contigs.
+
+###### Lander-Waterman Statistics
+
+Developed to figure out how many bases we need to sequence to put together useful contigs.
+
+The coverage of a genome is the number of reads that overlap at a given point in the DNA sequence. The coverage is distributed randomly. 
+
+A contig is an island with two or more reads. 
+
+![image-20210202151226885](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210202151226885.png)
+
+Where E(x) is expected value. 
+
+T is the minimum amount of overlap to say that the reads actually came from the same place in the genome. 
+
+c is number of reads, times length of reads, divided by the size of the genome. 
+
+s is just a derived number that is useful. 
+
+This assumes that the reads are perfectly uniformly distributed. This model was developed for random shotgun sequencing.
+
+Up at about 1.7x coverage, the number of contigs decreases. Up around 10x coverage, we can get one contig that is essentially the chromosome that was sequenced. 
+
+This analysis assumes there are no errors in the reads and that the alignment algorithm is infallibly for the sequences of length T.
+
+Most projects get about 8x coverage historically in the late 90s and early 2000s. Now we can do way better than that! Basically can ensure we only have a few contigs that aren't connected!
+
+
+
+###### Where are we today?
+
+Only 20 animal and plant genomes are finished today. The largest is at 40Mb fungus. We have been trying to finish the human genome since around 2001. When it was published it was 90% complete and in 100s of 1000s of pieces. We can see from the human genome assembly data that the assembly actually isn't complete. The reason that we still haven't finished the genome is because there are small repetitive sequences that can appear thousands or millions of times. It's hard to assemble DNA that has a ton of repeats because our assembler would identify many points in these sequences as identical even though they're from distant regions. 
+
+The T2T consortium is an effort to finish the human genome. The Ts are the Telomeres which are repetitive short sequences used to pad the ends of the genome. This consortium wants to sequence from one telomere to the other. To do this they are employing very long reads. 
+
+They are using hydatidiform mole cells which are unfertilized eggs cells that spontaneously began developing. They are haploid and have two identical copies of each chromosome rather than two chromosomes that are slightly different copies. 
+
+Celera was a company that worked on completing the human genome project. This company was formed by Applied Biosystems to race the international effort to sequence the human genome after the creation of the capillary sequencer. Once Celera entered, the speed of the race was increased and resulted in an earlier than anticipated completion. They were proud to announce that they could produce 100Mb per day.
+
+Today, the Oxford Nanopore which is a handheld device can do more than an entire factory floor could at the time. One run of a HiSeq 4000 can produce over 1000Gb in around 4 days. The maximum read length is around 150bp in paired reads. A single HiSeq 2500 in 2015 had over 1000 times the sequencing power of Celera's entire factory in 2001.
+
+###### Shotgun Sequencing
+
+Start with library, shear it into many pieces, select size desired, ligate and clone the DNA into a vector. Then sequence the vector. 
+
+###### TIGR Assembler and phrap Assembler (1990s)
+
+They are Greedy algorithms - apply things that are easy to compute and maximal and do that first. Build a rough map of fragment overlaps. Picks the largest scoring overlap. Merges the fragments and repeats until no more merges can be done. 
+
+![image-20210202154047424](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210202154047424.png)
+
+Because we look at data from two not necessarily identical chromosomes, we want to look at the percent identity that we will accept for the two to be called identical. 
+
+We can look at the fragments as nodes and overlaps as edges between the nodes. We can then create a graph that uses the edges to represent the overlaps so we can apply algorithms from graph theory to compute overlaps more efficiently. 
+
+Once we have a number of overlaps from high coverage, the consensus will use quality values and number of individual base reads to calculate the identity of the base at each position.
+
+*Assembly is a graph problem*
+
+A Hamiltonian circuit visits every node in the graph exactly once. Finding these paths is an NP complete problem so is computationally intensive. If we could find the path that connects the reads, we would have the assembled genome. 
+
+*How many overlaps are there*
+
+Look at all pairs of reads at least once ${n}\choose{2}$ there are theoretically this many overlaps. 
+
+The number of pairs that actually overlap should just be $N\times coverage$
+
+Build a table of sequences of length k (k-mers).
+
+Generate pairs from the k-mer table by taking a single pass through it. Use the reads that likely overlap from the table to expose to the more computationally intensive computation. 
+
+*Trimming*
+
+Need to trim off adapter sequences. 
+
+Overlap Based Trimming (OBT): Computes local alignments ("partial overlaps") between untrimmed reads. If two reads align and only mismatch at the very beginning and very end, the algorithm can trim them. 
+
+*Error Correction*
+
+Even at 0.5% error rate of Illumina sequencing, there are still errors in very large libraries. When correcting errors, after the alignment can look at all the bases at a given locus and can weight based on the number and quality of other bases at a given point.
+
+Once error correction is performed, the reads are adjusted and the assembler realigns that read which can improve the assembly.
+
+*Assembler Errors*
+
+Collapsed Tandem:
+
+When there are identical repeats in a DNA region, the assembler may tend to collapse the repeats to appear as only one copy of the repeat at one position in the DNA which is incorrect. 
+
+![image-20210202155804611](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210202155804611.png)
+
+Excision:
+
+If you have 3 regions of DNA in sequence with a repetitive sequence surrounding region 2, the assembler may align the repeats and excise the middle region. This would be erroneous as well. Results in chopping out a piece and you don't know where it goes.
+
+![image-20210202160013623](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210202160013623.png)
+
+Rearrangement:
+
+Again, if you have 4 segments separated by repeat sequences, the alignment might misplace the segments because they're identical. 
+
+
+
+Overlap Graphs:
+
+Represent the overlaps as graphs as well. Repetitive overlaps get trimmed to simplify.
+
+
+
+###### Diploid Genomes
+
+Our chromosomes are not identical. This is why we are using bacterial genomes. All of our assemblies represent a genome whether it comes from one genome of two.
+
+When the assembler is processing data from a diploid genome, it may mistakenly form two contigs from the two chromosomes. If a contig is a heterozygous locus, we should merge it into the other contig. The heterozygous loci match but not super well so the assembler may mark the contig as not being the same even though it should be.

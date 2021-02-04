@@ -1,0 +1,97 @@
+{
+  "main": {
+    "id": "fcdede09178736e5",
+    "type": "split",
+    "children": [
+      {
+        "id": "ca2056ff5cc51af5",
+        "type": "leaf",
+        "active": true,
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "Intermediate/Video Notes.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "d60eec8845eed1de",
+    "type": "split",
+    "children": [
+      {
+        "id": "e7050186e63c31f6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "50041d591950ca8f",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "30827759db7710ed",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "089ace3e576a837c",
+    "type": "split",
+    "children": [
+      {
+        "id": "3d6eb27092b37ef2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8a78b51da254ea8d",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Intermediate/Video Notes.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "lastOpenFiles": [
+    "Intermediate/Video Notes.md",
+    "Intermediate/Class Notes.md",
+    "Intermediate/C Notes - Kernighan.md",
+    "Modeling The Living Cell/MATLAB.md",
+    "Fun Code/Machine Learning Basics.md",
+    "Spring Zoom Links.md",
+    "Genomic Data Science/Class Notes.md",
+    "Fun Code/Linear Algebra.md"
+  ]
+}

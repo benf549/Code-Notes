@@ -24,3 +24,8 @@ On piazza, there is a unix review powerpoint we can check.
 
 `tmux` command can be used to create persistent terminal sessions that persist even if you get disconnected from the server. 
 
+To create a new tmux session, use `tmux new -s session_name`
+
+Then you are in the tmux session. To exit the session, use `ctrl-b d` to disconnect.
+
+To rejoin the tmux session use `tmux a -t myname` 
