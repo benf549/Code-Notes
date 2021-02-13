@@ -24,7 +24,7 @@
 
 ###### [Class Link - M/W/F](https://wse.zoom.us/j/98140396313?pwd=SjhvVG9pVjJIajZtb3k2cmhFQ0ZLUT09)
 
-###### [TA Section - Thurs](https://jhubluejays.zoom.us/j/99115210256?pwd=UzdheVdTZlN0ZlorMHhBc0lYTmE0Zz09)
+###### [TA Section - Thurs](https://jhubluejays.zoom.us/j/2778324931)
 
 
 

@@ -6,7 +6,7 @@
 
 ### Syllabus Review
 
-###### Class Participation During Zoom Call: [slido.com]() `Password: jhuip01`
+###### Class Participation During Zoom Call: [slido](https://www.slido.com) `Password: jhuip01`
 
 > Todo:	
 >
@@ -150,3 +150,154 @@ int main(void) {
 }
 ```
 
+
+
+## Week 3
+
+*02/08/2021*
+
+### Array Recap
+
+You can get the size of an array of ints with `sizeof(arr)/sizeof(int)`. However, if we called the `sizeof()` an array that was passed into a function call, we would get the `sizeof()` the pointer!  This is not useful so best practice is to pass the size of the array as a separate argument to the array. 
+
+
+
+*02/10/2021*
+
+### Makefile, Header Guard, and Compilation Recap Questions
+
+##### Why do we need header guards?
+
+Prevents double declarations from confusing the compiler. A header file contains declarations. If there are multiple declarations, for the same thing, the compiler might get confused. We only want declarations to appear once in the overall source code. So, the header guard tells the compiler to ignore the declaration if it is already aware of the declaration. 
+
+Header guards ensure that the header files are **idempotent** or that the code is only used once or not at all. 
+
+##### What is the difference between compiling and linking?
+
+Compilation takes `.c` files and converts them to `.o` files which are object files. 
+
+Linking combines the object files into a single executable
+
+
+
+##### What compiler flag is used to create object files and what extension do those files have?
+
+We use the `gcc -c` flag to prevent `gcc` from performing the linking step. It only creates the `.o` files. 
+
+
+
+##### What is a `target` in a Makefile?
+
+A target is a file that can be "built". When you run `make command` the command that is specified in the Makefile is the target
+
+
+
+##### Why use Makefiles?
+
+Makefiles automate the compilation and linking process and ensure that only the files that have changed will be recompiled which saves compilation time in large processes. 
+
+
+
+### Review of Binary Search Algorithm
+
+Binary search works by dividing a sorted list in half, sampling the middle value, then if that value is less than the target recursively calls itself on the lower half of the list and if it is greater than the target, does the same with the larger half of the list. It does this until the target is found or the range becomes empty.
+
+
+
+### Makefile Example
+
+`rev_str` could take first and last character, then recursively swap next two characters in string. 
+
+```c
+//in revstr.h
+void rev_str(char str[], int start, int end){
+    return;
+}
+
+//in main.c
+int main(){
+    char str[] = "Hello";
+    rev_str(str);
+    return 0;
+}
+```
+
+```c
+//in recursion.h
+#ifndef RECURSION_H
+#define RECURSION_H
+
+void rev_str(char str[], int start, int end);
+
+#endif
+```
+
+```makefile
+CC=gcc
+CFLAGS=-g -Wall -Wextra -pedantic -std=c99
+
+recursion: main.o recursion.o
+	$(CC) -o recursion main.o recursion.o
+	
+main.o: main.c recursion.h
+	$(CC) $(CFLAGS) -c main.c
+	
+recursion.o:
+	$(CC) $(CFLAGS) -c recursion.c
+	
+clean:
+	rm -f recursion *.o
+```
+
+
+
+*02/12/2021*
+
+### Multidimensional Array and GDB Recap Questions
+
+#### How do you declare a multidimensional array and pass it to a function?
+
+```c
+// Declare the array
+float grid[4][10]; //array with 4 rows and 10 columns.
+
+printf("%f", grid[3][4]); // prints the value stored in the 4th row and 5th column
+```
+
+When passing a multidimensional array to a function, you have to pass the size of each dimension except the first one. 
+
+```c
+void foo(float grid[][10], int rowNum){
+    //do stuff
+}
+```
+
+C lets you not specify the first dimension so that the length can vary in only that first dimension. The function will handle arrays of whatever length but the elements inside the array must have a consistent length. 
+
+#### To initialize a multidimensional array with Array Initialization
+
+Think about a 2D array as an array of 1D arrays
+
+```
+int grid[2][3] = {{1,2,3},{3,4,5}};
+```
+
+
+
+#### What is the compile flag for debugging with GDB
+
+`gcc ... -g file.c` for any development purposes, we want to use the -g flag. Professor says that we should just always include this flag in our make file. We only wouldn't want to include this flag if we were shipping the executable for production purposes. 
+
+
+
+#### Setting Break Points in GDB
+
+A useful way to use breaks, is to set breakpoints at the name of the function. 
+
+`break function_name` 
+
+You can also break on a line number of a given source file like in:
+
+`break main.c : 12` will break on line 12 in the file main.c
+
+If you don't want to step through a region of code, you can set another break point at the desired location to resume control at with the same `break` syntax. You can use the `continue` keyword to allow execution to resume until the next breakpoint.

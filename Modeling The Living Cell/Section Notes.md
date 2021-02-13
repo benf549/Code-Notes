@@ -50,3 +50,81 @@ Protein folding is 10^-6^s to 1s. Sidechain rearrangement occurs around 10^-9^s.
 >
 > If there are about 20,000 ribosomes per cell, there are about 15 AA / per second / ribosome
 
+### Section 3 - Thermodynamics Review
+
+*02/08/2021*
+
+Make sure that homework is in a zip file and that the data files provided for the homeworks are included in the code. 
+
+Last week was thermodynamics review
+
+
+
+#### Canonical Ensemble
+
+A way of describing transitions between states in systems that are at equilibrium with a large thermal reservoir. We look at a subsystem of the reservoir that can exchange energy.
+
+Constants: N - Particle Number, V - Volume, T - Temperature
+
+The potential of the canonical ensemble is the Helmholtz Free Energy.
+$$
+p(i) = \frac{e^{-Ei/k_b T}}{Q}
+$$
+Where Q is the Canonical Partition Function:
+$$
+Q = \sum_i^{no. states} e^{-E_i/k_b T}
+$$
+Where $E_i$ is the energy of a given state. 
+$$
+P(2) / P(1) = e^{-\Delta E/k_b T}
+$$
+
+
+#### Entropy
+
+We define the entropy as the number of microstates. A microstate is a particular configuration of particles. 
+$$
+S = k_b ln(\Omega)
+$$
+Where $k_b$ is Boltzmann's constant or $8.3145/6.022 \times 10^{23}$ 
+
+$\Omega$ is the number of microstates available to the system a given energy level. Two microstates may have different configurations at the same energy and may reversibly transition between the microstates. 
+
+The highest entropy is the multiplicity at the given energy level. 
+
+
+
+### Monte Carlo Simulation
+
+A way of exploring the energy landscape of a particle configuration. 
+
+Suppose we have a system of particles in a box, they have a Kinetic Energy $ = \frac{1}{2}mv^2$ and a potential energy $V(\vec{r})$ 
+$$
+\int \int dp^N dr^N
+$$
+The box is a Canonical Ensemble so **N, V, T**  are constant. 
+
+We need to integrate over the momenta and radii. 
+
+The Hamiltonian Operator is an operator that takes in the position and momenta of a system. It is a way of calculating the total energy of the system. Here we extend this concept to an N-dimensional system of particles. 
+$$
+H(p^N, r^N) = p^2/2m + V(\vec{r})
+$$
+Our integral can be viewed as a partition function. Before, our energies were discrete and now they are continuous by nature of the integration. 
+$$
+\frac{1}{N!} \frac{1}{\nu^{3N}}\int dp^N e^{-p^2/2mk_b T} \int dr^N e^{-V(\vec{r})/k_bT}
+$$
+
+$$
+= \frac{1}{N!} (\frac{2mk_bT}{\nu^2})^\frac{3N}{2} \int dr^N e^{-V(\vec{r})/k_bT}
+$$
+
+
+
+First we generate an initial configuration and see what equilibrium state is reached. Next, we calculate the potential energy of the system, to do this, we use the Leonard Jones potential. This is a sum of attractive and repulsive Van Der Waals forces. 
+$$
+V(\vec{r}) \propto (\frac{1}{r_{ij}^6} - \frac{1}{r_{ij}^{12}})
+$$
+Then calculate the Boltzmann Factor $e^{-H/k_b T}$
+
+Last, implement the Monte Carlo Algorithm. Randomly generates a new configuration for the system by a small factor, then decides whether to accept the change based on the difference in energy produced by the change. Determines the likelihood of the system making that transition.  

@@ -263,3 +263,305 @@ Represent the overlaps as graphs as well. Repetitive overlaps get trimmed to sim
 Our chromosomes are not identical. This is why we are using bacterial genomes. All of our assemblies represent a genome whether it comes from one genome of two.
 
 When the assembler is processing data from a diploid genome, it may mistakenly form two contigs from the two chromosomes. If a contig is a heterozygous locus, we should merge it into the other contig. The heterozygous loci match but not super well so the assembler may mark the contig as not being the same even though it should be.
+
+
+
+## 02/04/21
+
+### Genome Assembly, deBruijn graphs, and more
+
+Why is genome assembly a hard problem? It is a very large scale computing task. The most computer-science-y thing out of all of genomics. Next generation sequencing data can produce > 5,000,000,000+ reads. With billions of reads, reads have gotten shorter. Even though we had more reads, the assembly problem actually got harder.  The basic operation in assembly is finding overlaps. When sequences match, a consensus is taken and weighted by quality to identify the identity of the base at that location. With 5 billion reads, this would be 12 quadrillion comparisons. 
+
+##### De Bruijn Graphs
+
+Think of every work of length k-1 as an edge on a graph. For every read, find every read of a given length and link that k-mer with an edge representing a k-1 word. 
+
+![image-20210204151111493](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210204151111493.png)
+
+Why use this technique?
+
+The first sequencers as the ones we talked about (Tigr), represented each read as a graph with nodes connected by their overlaps. 
+
+These graphs appear to have one node for every k-mer in the genome. There are 3 billion different kmers for a mammalian genome. When you have millions of reads, this is way more expensive. However, when you get into the billions of reads, you get to the point where this model has less nodes than reads. 
+
+Now you have a read that is broken up into a bunch of nodes and need to walk along the path to reassemble the node. 
+
+![image-20210204151629585](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210204151629585.png)
+
+Breaking up the intro to a tale of two cities in above example. Has lots of repetitiveness. A unique Eulerian tour of the graph reconstructs the original text - this is a graph that hits every node in the graph exactly once. Unlike the Hamiltonian path problem like the other data structure, an Eulerian tour can be found in linear time. 
+
+If there is no obvious tour, you can try to simplify the graph. 
+
+Early assemblers that used this technique required 2TB of ram but they have gotten much more efficient. 
+
+The next-gen data is short with high coverage, Illumina sequencers have trouble sequencing areas with low GC content. 
+
+>Question for a genome project:
+>
+>How much sequencing coverage do I need?
+>
+>Which assembly software should I use?
+>
+>How accurate will the assembly be?
+>
+>
+>
+>To quantify the abilities of the various assemblers, they have looked at some genomes and compared the assemblers.  To test them, they used long reads and short reads. 
+>
+>When you look through reads and density of k-mers plotted as function of coverage,  most-kmers appear at about the coverage of the data. However, there is always a massive peak of kmers that appeared once or twice due to errors from the sequencer.
+>
+>You can use a cutoff to go through the k-mer and check if swapping each of the bases places it in the middle of the bell curve. 
+>
+>Comparing the assemblers, 4 of them are De Bruijn assemblers and the other 4 are not. 
+>
+>N50 size is a way to compare the quality of the genome. 
+>
+>Look at what half the genome length is. Sort data from biggest to smallest, added their lengths cumulative. Once the sum is greater than or equal to the XX% of the length, that value is the N50. Larger is good. 
+>
+>This is useful for the output of an assembler and also for the reads from sequencers like ONP which can also be sorted by length.
+
+A dot plot is when you plot one genome assembly versus another or the truth. You pick a short sequence length, and see where that sequence on one contig occurs on another contig. You would expect the graph to look like $y=x$. However, different errors on the test contig look different. 
+
+### Code Review
+
+#### Unix, Commands, and Python Basics
+
+You can use any language for the assignments but python is probably easier.
+
+Python is probably not the best when you need to worry about memory management. 
+
+Recall in unix:
+
+`wc` counts words
+
+`sort` sorts the input
+
+`uniq` takes a sorted file and removes repeats
+
+`cut` extract only a certain column
+
+`grep` finds lines containing pattern match
+
+`Top/Htop`: will tell you what's going on in the server's memory. Useful if you have a really slow program.
+
+`TMUX` allows you to have multiple terminals open that are persistent if you get disconnected from the server. 
+
+`shuf` shuffles data randomly
+
+`|` allows command chaining ex: `grep ">" reads.fasta | wc -l` 
+
+`cut -d'\t' -f1 annotation.gtf | sort | uniq -c` gives the number of scaffolds in the genome annotation file.
+
+
+
+`awk`:
+
+Print only transcript coordinates from annotations: `awk -F '\t' '$3=="transcript" {print $4,$5}' annotation.gtf`
+
+Sum a column: `swk '{sum+=$1} END {print sum}' file.txt`
+
+
+
+Python Review
+
+Probably want to write headers that describe a program. Put name, class, data, inputs/outputs and basic function
+
+Annotate code blocks with comments. 
+
+
+
+To take input from standard input
+
+```python
+import sys
+for line in stys.stdin():
+    line = line.strip() # best practice to strip every line to remove newlines that might mess stuff up
+    [val1, val2] = line.split("\t") # splits columns
+```
+
+
+
+Main method
+
+if executing the script from command line, executes the main function but wouldn't execute if you imported it from another function
+
+```python
+import sys, argparse
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()
+```
+
+
+
+Command Line Input:
+
+```python
+#python my_prog.py < infile.txt > out.txt
+
+sys.stdin and sys.stdout are used to read and write  to /from standard in and out
+if Error:
+    sys.stdout.write("Usage: python my_prog.py infile.txt ooutfile.txt\n")
+```
+
+Other options are sys.argv and sys.argparse
+
+
+
+## 02/09/21
+
+Assignment 2 Is Posted. We will be annotating the genome we assembled. Annotation is needed for a genome to be of any use for people studying the genome. We will use a program called glimmer to do this. Glimmer is a machine learning program that will be trained on the assembly itself.
+
+We use gene to mean a protein encoding gene. To make things simpler, we will use the main >5Mbp chromosome. 
+
+The glimmer output needs to be converted to a more standard format which we can use to spit out the protein sequences from the predicted genes. We have the Klebsiella known proteins and will use Mummer to align all of the protein sequences to all of the known sequences. 
+
+### Assembly Wrap Up
+
+#### Example of Recent Assembly Project
+
+Their lab worked on the Sequoia tree's genome which is the largest tree on earth with an 8.2Gbp genome and they are working on the Red Wood which has even larger DNA. The trees can be hexaploid in that they have 6 copies of each chromosome per cell which makes sequencing very difficult. They sequenced the seeds (haploid) with both Illumina and ONT reads to do a hybrid assembly. The genome is so large that doing just small Illumina reads would not produce a good assembly. They got >100x Illumina coverage and 22x ONT coverage. The N50 was 9500bp.
+
+The scaffolding algorithm they used is called Hi-C. Hi-C technique makes the DNA stick together when the DNA is in the cell as it does naturally. Then you get pieces of DNA that were physically adjacent usually within the same chromosome. The DNA is then broken up and the linked fragments are then identified as being from the same place. There are more links on parts of chromosomes that are nearby. The more links, correspond to a higher likelihood of contigs being close together. After assembly with MaSuRcA, they used the Hi-C reads to scaffold the assembly together. 
+
+Every chromosome has a centromere which is a millions of bp long 100bp repeat in the center of the chromosome. Telomeres are very long repeats of 6-7bps. Errors in chromosome assembly can be identified when centromeres are at the beginning and end or when telomeres are in the center. 
+
+
+
+Assembly of Ancient DNA:
+
+DNA is remarkably stable when preserved. Freezing can preserve it for millennia. The mitochondrial genome can be preserved even longer because it is circular and has many copies per cell. 
+
+### Bacterial Genome Annotation
+
+We have a genome assembled now, what do we know about it?
+
+Genes tend to be about 1000bp long
+
+We observe a linear trend that correlates the genome size and the number of genes for bacteria. This does not work at all for eukaryotes. 
+
+Humans have probably around 20,000 protein encoding genes. We are not end-to-end genes unlike viruses and bacteria. The coronavirus has around 29 genes. 
+
+When DNA is read, the genetic code dictates what protein corresponds to each codon. 
+
+Open Reading Frames. Read from one Stop to the next Stop. The ORF is defined by what base you start on and where you read from. You also have to look at the 3 reading frames on the complementary strand. For any part of the DNA, there are 6 reading frames in which you can go stop to stop. 
+
+The stop codons are TAA, TAG, and TGA. Regions of DNA that have low GC content are more likely to have high AT content. In a low GC genome, when you're in the wrong reading frame, you have a lot of stop codons. Therefore, the longest ORF is most likely to be the true genes. 
+
+However, high GC genomes have less stop codons and picking the longest ORF doesn't really work anymore. 
+
+To identify where the genes are, we need to know where the Start codons are. The start codons must be within the stop codons. 
+
+We use machine learning to identify the known genes. Feed a model data about distribution of nucleotides at the 3 codon positions. Look at hexamers. Look at amino acid composition. Look at ORF length.
+
+Most codons are redundant and most organisms have a typical GC content. We can look by reading frame and identify percentage of each base at the position in the codon. For a low GC content organism, choose the codon position that minimizes GC percentage. If a high GC codon, choose the codon that maximizes the GC content. 
+
+
+
+###### Markov Chains
+
+Used by Glimmer. A chain of events that once an event is seen, can be used to predict what the next event will be. Dictated by Bayes' Law
+$$
+P(a|b) = \frac{P(b|a) P(a)}{b}
+$$
+Modeling Start Codons. If we have frequencies of the start codons in a gene. Say 4 probabilities corresponding to each codon. We use the probabilities of each codon to build a model based on the empirical data. If we have a codon and we want to identify which model it applies to. Want to know probability of M1 and M2 given a sequence X. So, we use Bayes' law to convert the probabilities to probability we want. 
+
+Markov Chains work by assigning the probability of any character being independent of previous characters after a certain order. We can compute the probabilities of combinations of events just by multiplying. 
+
+We make a prediction from the current state only. Can be written out as a chain of nodes representing states and edges representing probabilities of traveling between states. 
+
+Training a Markov Model
+
+Compute the probabilities from the data. Based on conditional probability. If you want probability of C given T in previous position, count all the Ts in the data and see how many have a C after them. Then you can calculate the probability. 
+
+
+
+## 02/11/21
+
+### Markov Chains Continued
+
+A Markov Chain is just a way of modeling the likelihood of an event based on where you are in the procedure at the moment. Basically a bunch of computed conditional probabilities. 
+
+Markov models are just sets of probabilities. They have order, the 0th order is the probability of being at the current position. The first order is the probability of a given base given the previous base. second order is the same given the second base and so on. 
+
+0th order model score is just probabilities of each base multiplied together. 
+
+1st order model score is the multiplication is first base from 0th order times the probability of the current base given the previous base and so on to the end of the sequence. 
+
+Markov assumes the current position is independent of everything else except to a certain number of residues which can be multiplied. 
+
+Markov Model make is very easy to score the chains.
+
+An Nth-order Markov Model requires 4^n+1^ probabilities for DNA and 20^n+1^ probabilities for Amino Acids
+
+
+
+#### Markov Chains
+
+Each position in a DNA sequence is a state. The probabilities are the same in every state for a 0th order chain.
+
+When using for bacteria and viruses, 5th order chains work very well. GeneMark uses these
+
+Why 5th order? Because GeneMark is looking for protein coding DNA, there is useful information in keeping track of the codons. A codon is 3 bases. The model is predicting a sixth base based on the previous 5 codons. 
+
+The problem with higher order chains is that each requires an exponential 4^n+1^ probabilities which is computationally expensive. The genome just isn't large enough to see all of the nth base combinations of bases. 
+
+##### Scoring A Sequence with a 5th Order Markov Chain
+
+#####  ![image-20210211151754584](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210211151754584.png)
+
+The probabilities are super small so to avoid underflow, convert each probability to a logarithm and add them for the same effect to avoid zeroing out the sequence probability.
+
+When scoring the sequence, 
+
+##### Nonhomogeneous Markov Chains
+
+More advanced programs like Glimmer can have different probabilities if they are aware of the codon positions that A, C, T, and G can occur in per codon. Therefore, you'd have 3 sets of probabilities per triplet in the ORF. 
+
+Allow the program to vary the number of previous positions that the model looks at based on the codon being looked at. It may be that this happens to work better than always using a 5th order markov model.
+
+##### Interpolated Markov Model
+
+Uses a weight function to calculate the probabilities for models of different orders. 
+
+This is interpolating the results of the different order models. 
+
+Now glimmer uses Interpolated Context Models which don't necessarily use the bases right next to the target. It could theoretically pull from bases anywhere in the sequence that are most informative for the call.
+
+
+
+#### Overlapping ORFs
+
+When you have two ORFs that overlap, this isn't possible, therefore you need to make calls as to whether to accept one or reject it. We don't want to predict that genes overlap. The ORF scores each reading frame. The model looks at the overlapping region and scores that. It then picks the higher scoring reading frame. 
+
+We don't want to throw away long reading frames though, gimmer used to just leave a flag that says that the overlap scored higher in the reading frame but didn't want to throw away the larger gene. It is possible for the model to just move the start codon over as well. 
+
+##### Overlapping Genes
+
+It is possible for genes to actually overlap in bacteria. Something around 15% of all genes in prokaryotes overlap. They found that around 29% of the genes in bacteria overlapped on at least one end.
+
+It is possible for genes to lose their stop codon to mutation. Polymerase would then keep reading until a stop codon is eventually reached. 
+
+
+
+#### Translation
+
+Genes start with AUG and have a Ribosome binding site just before the start codon which you can also look for in the Markov Model. Glimmer will run through the data and look for the genes it called and look right before them to find a ribosome binding site. Then it bootstraps by running again, looking for the pattern it found that is likely the ribosome binding site. 
+
+
+
+### Glimmer Homework
+
+We will run the Long-Orfs program that finds the orfs longer than min0length that do not overlap other such orfs. It finds this min-length automatically. 
+
+This works well for low to medium GC content genomes but does not work very well for high GC genomes. Glimmer3 can do better now. 
+
+![image-20210211154753095](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210211154753095.png)
+
+
+
+
+

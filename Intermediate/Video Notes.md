@@ -96,7 +96,7 @@ Multiplication and Division have higher precedence than addition and subtraction
 
 Note above, postincrement and preincrement have different precedence.
 
-###### User Input
+###### User Input (`printf `and `scanf`)
 
 `scanf()` is another function from `stdio.h`. Usage:
 
@@ -107,7 +107,7 @@ scanf("%d", &i); //YOU HAVE TO USE THE POINTER TO I (for some reason we will see
 prinf("the number you entered was %d", i);
 ```
 
-The output of `scanf` can tell you if the input went correctly. Returns 0 if the input was invalid for the specified type. `EOF`is returned which is generally equal to `-1` if no input was available meaning the end of file was reached.
+The output of `scanf` can tell you if the input went correctly. Returns 0 if the input was invalid for the specified type. `EOF`is returned which is generally equal to `-1` if no input was available meaning the end of file was reached. The `scanf` returns the number of successful matches. If you're scanning for 2 matches, a successful scan returns 2
 
 ### Git
 
@@ -220,7 +220,7 @@ preincrement vs postincrement:
 
 The same logic applies to the `--a` and `a--` operators.
 
-preincrementing has higher precedence than postincrementing. 
+pre-incrementing has higher precedence than post-incrementing. 
 
 ```c
 int main()
@@ -415,3 +415,392 @@ Both of the above functions return `%lu` (unsigned long) values so have to be pa
 `strcpy(s1, s2)` copies s1 to s2 as long as s2 is large enough.
 
 `strcat(s1, s2)` concatenates like string addition in python. 
+
+
+
+### File IO
+
+###### Reading and Writing Files
+
+We have worked only with `printf` and `scanf` to do standard input and standard output.
+
+We may want to be able to read and write to files. Especially when we have very larger outputs. 
+
+`fprintf()` and `fscanf()` 
+
+```c
+fopen("output.txt", "w") // opens file in writing mode
+```
+
+Possible read/write modes are:
+
+ `r` which opens the file for reading
+
+ `r+` which opens the file for reading and writing
+
+ `w` which opens the file for writing
+
+`w+` which opens the file for reading and writing. 
+
+Both w and w+ mode will overwrite a file if it already exists. 
+
+The `fopen()` command returns a `FILE*` which is a pointer to a `FILE` struct
+
+If the file open fails, returns `NULL`
+
+`feof(fileptr)` returns non-zero if we have already read past `EOF`
+
+`ferror(fileptr)` returns non-zero if the file is in an error state. An example of when this would happen is if the file was opened for writing and reading was attempted.
+
+`rewind(fileptr)` returns a file pointer to the beginning of the file. Rewinds the read/write operation to the beginning. 
+
+```c
+#include <stdio.h>
+int main() {
+    FILE* input = fopen("numbers.txt", "r");
+    if (input == NULL) {
+        printf("Error: could not open input file\n");
+        return 1;
+    }
+    int a = 0, b = 0;
+    int numCollected = fscanf(input, "%d%d", &a, &b);
+    while (numCollected == 2){
+        printf("%d\n", a+b);
+        numCollected = fscanf(input, "%d%d", &a, &b);
+    }
+	if (ferror(input)) {
+        printf("Error: error indicator ");
+        printf("was set for input file \n");
+    	return 2;
+    } else if (numCollected != EOF) {
+        printf("Error: could not parse line \n");
+        return 3;
+    }
+    
+    fclose(in=put);
+    return 0;
+}
+
+```
+
+Remember to close a file whenever you open one!
+
+###### Standard Streams
+
+The following are considered standard streams. They are the object used by `printf` and `scanf` and are defined in `<stdio.h>`. They do not have to be closed, probably because they are read in before the main function executes but I'm not sure about that. 
+
+`stdin` 
+
+`stdout`
+
+`stderr`
+
+Because these are basically files, we can read from the standard in with `fprintf`
+
+```c
+#include <stdio.h>
+fprintf(stdout, "Hellow, World\n");
+```
+
+
+
+### Assertions
+
+`assert(boolean_expression)`
+
+Assertion statements help us to catch bugs as close to the source as possible. 
+
+`#include <assert.h>`
+
+The `boolean_expression` is an expression that should be true if everything is OK. If the boolean_expression is false, the program immediately exits with an error message indicating an assertion has failed. 
+
+Assert is used to create test cases.
+
+Example:
+
+```c
+#include <assert.h>
+int sum = a*a + b*b;
+assert(sum >= 0);
+
+if (isalpha(c)) {
+    assert(c >= 'A');
+    printf("%d\n", c - 'A');
+}
+```
+
+
+
+Assert statements should not be used for typical error checking. Assert statements should be used for checking that your programming has not introduced an error. 
+
+We want to use return statements with non-zero integers that indicate that the program has returned an error when the error is on the fault of the user. We use assert statements to set up test cases that we want to ensure are correct while editing the code. 
+
+### Math
+
+`#include <math.h>`  gives us access to useful math functions. 
+
+`-lm` must be included when compiling to ensure that the functions work. For example we would then have to call `gcc -Wall -Wextra -pedantic -std=c99 -lm file.c`  this is the link flag that links the `math.h` when compiling our program.
+
+`sqrt()`, `pow(x, y)`, `exp(x)`, `log(x)`, `log10(x)`, `ceil(x)`, `floor(x)`, `sin(x)` 
+
+and more!
+
+The arguments of math functions are doubles, however, you can pass in ints, floats, or doubles.
+
+
+
+### Functions
+
+```c
+int foo(char c, int i){
+    return i;
+}
+```
+
+To define a function, specify the return type, the name, then its typed arguments in parentheses. When functions communicate with eachother, we use parameters to go into one function and return values to get information out of the function. Another option is to use global variables, but this is a bad practice when programming. 
+
+If you want to have a function that doesn't return anything return type should be void.
+
+```c
+void bar(char c){
+    printf("%c", c);
+}
+```
+
+Writing functions allows us to break our larger problem into smaller, more easily solvable subproblems. 
+
+When deciding to write a function, if the function has a clear goal, does not require too many variables to be passed in, and the code has a single result or perhaps a couple results a function is a good call.
+
+###### Pass by Value
+
+When you pass arguments into the function, you are passing a copy of the variable into the function. Reassigning the variable will not change the variable outside of the scope of the function. 
+
+### Command Line Arguments
+
+```c
+#include <stdio.h>
+
+int main(int argc, char* argv[]) {
+    printf("argc = # arguments + 1: %d\n", argc);
+    for (int i = 0, i < argc; i++) {
+        printf("argv[%d] = %s\n", i, argv[i]);
+    }
+    return 0;
+}
+```
+
+Rather than having void or empty parameters in main, we pass in the `argc` and `argv` parameters. These values are set automatically when the main function is called at execution time. 
+
+The executable's name is always the first index of the `argv` array like the `sys.argv` function in python.
+
+Rather than `char* argv` you could also see `char argv[][]` or `char **argv`. These are all different ways of saying the same thing. 
+
+### Function Declarations
+
+When calling functions, we need to make sure that the function is defined before it is called in the file. 
+
+```c
+float func1(){}
+
+int main() {
+    func1();
+}
+```
+
+
+
+###### Compilation Step
+
+First the preprocessor reads the file and brings all code and include statements together. Then the compiler takes the source code (human readable) to the machine code. Then the linker connects the include statements. 
+
+If we want to do the implementation of a function after the main function, we can declare first and then do the implementation later.
+
+```c
+float func1(int a, int b) //declaration
+    
+int main() {
+    float a = func1(4, 5)
+}
+
+float func1(int a, int b) { //implementation
+    return (float) a / b
+}
+```
+
+
+
+### Pass By Reference Arrays
+
+When arrays are passed to functions, the pointer to the array is passed so the function has access to change the original array rather than a copy of the array. 
+
+It is useful to pass the length of an array to a function that will need it to loop through it.
+
+What about returning arrays? We actually don't have the tools we need to do this quite yet. You cannot return a pointer to a local variable. To get around this, we can just use the pass-by-reference nature of the array to ensure that the modifications are kept. 
+
+
+
+### Recursion
+
+When you need to repeatedly do something. Break a larger problem into repeated smaller subproblems. The function then needs to call itself. 
+
+In C when you call a function, the function call is added to the stack frame. This is an area of memory where variables and temporary values for a function call are stored as well as the return address indicating the code location where the function call will return to once it resolves. Each recursive call  adds to the stack frame and if the recursion does not break, you exceed the size of the call stack.
+
+The size of the call stack is proportional to the size of n.
+
+
+
+### Multiple Source Files
+
+To compile  one executable from one source file, we can put information in header files to specify declarations and definitions that different files will need to use. Recall that we just need to tell the program that functions exist before they are called and then the actual implementation can be written in a c file.
+
+When calling a custom header file, we use `#include "functions.h"`
+
+```c
+functions.c
+__________________
+#include "functions.h"
+
+float func1 (int x, float y) {
+    return x+y;
+}
+
+int func2 (int a) {
+    return 2*a;
+}
+
+__________________
+functions.h
+__________________
+float func1 (int x, float y);
+int func2 (int a);
+
+__________________
+mainFile.c
+__________________
+#include <stdio.h>
+#include "functions.h"
+int main() {
+    printf("%.2f %d", func1(2, 3.0), func2(4));
+    return 0;
+}
+```
+
+Once we have the file structure set up, we can call 
+
+`gcc std=c99 -pedantic -Wall -Wextra mainFile.c functions.c`
+
+and then we can simply call `./a.out` as usual
+
+
+
+#### Compiling, Linking and Separate Compilation
+
+Compiling translates `.c` files to `.o` files. 
+
+Linking combines `.o` files into one executable into `a.out`
+
+The linking ensures that if only one compiled file is changed, we don't have to recompile unchanged files. We wouldn't want to call the above `gcc` command every time. 
+
+![image-20210210114910053](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210210114910053.png)
+
+You can use the `gcc -c` flag to specify that you only want to compile that file. Previously compiled files that were not edited do not need to be recompiled. You can first compile the changed file and then link the changed file and unchanged files. 
+
+
+
+### Make and Makefile
+
+`make` keeps track of which files were changed and need to be recompiled. Saves time by not having to recompile things unnecessarily. 
+
+Just need to set up a configuration file called a Makefile, then we can carefully specify which files require other files and which commands to use to create them. 
+
+Simply create a makefile. A makefile differentiates between tabs and spaces. We can have different targets which creates different commands that do different things when called. 
+
+```makefile
+Makefile:
+_________________
+CC=gcc
+CFLAGS=-std=c99 -pedantic -Wall -Wextra
+    
+main: mainFile.o functions.o
+	$(CC) -o main mainFile.o functions.o
+
+mainFile.o: mainFile.c functions.h
+	$(CC) $(CFLAGS) -c mainFile.c
+
+functions.o: functions.c functions.h
+	$(CC) $(CFLAGS) -c functions.c
+
+clean:
+	rm -f *.o main
+```
+
+To use a makefile, we can just run `make functions.o` or `make mainFile.o` or `make`
+
+Just running `make` will run main and all below things.
+
+
+
+### Header Guards
+
+When making our own `.h` files, we will include header guards which are used when the header contains definitions. It prevents definition duplications when multiple `.c` files use the same `.h` file. 
+
+```c
+rectangle.h
+_____________
+//include likes like this at the top; change the all-caps name to match the file name, rectangle.h in thic case. 
+#ifndef RECTANGLE_H
+#define RECTANGLE_H
+
+struct rectangle { //we haven't discussed structs yet in c. 
+    int height;
+    int width;
+};
+
+// include this line at the bottom. 
+#endif
+```
+
+Doing this ensures that if you have a main that includes `a.h and b.h` and in `a.h` you include `b.h` then technically, you have already included `b.h` from main.
+
+
+
+### `sizeof`
+
+A default function that returns the size of a type in bytes. 
+
+A char is one byte, an int is 4 bytes, a float is 4 bytes, and a double is 8 bytes
+
+`sizeof(a)/sizeof(type_of_a)` gives the length of an array of a types.
+
+
+
+### Multidimensional Arrays
+
+C arrays are really easy to turn into matrices.
+
+`int arr[10][10]` creates a 10x10 matrix. The first bracket is number of rows, the second bracket is the number of columns.
+
+`int table[2][4] = { {1,2,3,4}, {5,6,7,8}}` These arrays are laid out as one continuous block of memory. When you want to access a value in the array, you index with `table[i][j]`
+
+We can write functions that handle multidimensional arrays but as with regular arrays, we get passed the pointer to the array, so we need to pass one or both array sizes in with the function parameter. 
+
+```c
+void sum_matrix(int list[][4], int numRows);
+```
+
+
+
+### GDB
+
+Stands for GNU debugger. This is helpful for identifying bugs in our code. Helps us run the program in a way that allows us to flexibly pause and resume the code, print out value in the middle of execution, and see where errors like `segmentation faults` are occuring. 
+
+When using `gdb`, compile the program with `-g`. This flag includes the source code in the executable for GDB to read. 
+
+To run call `gdb ./executable`
+
+Within gdb, `break main` sets a break point at the main function. then `run` will progress the program by one line. We can then use `next` to execute one like at a time. If you use `step` rather than `next`, `gdb` will step inside the function. `print var` will print the value of a variable
+
+`n` is an abbreviation for next
+
+`p` is an abbreviation for print
+

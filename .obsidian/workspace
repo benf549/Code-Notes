@@ -10,8 +10,8 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "Intermediate/Video Notes.md",
-            "mode": "preview"
+            "file": "Modeling The Living Cell/Class Notes.md",
+            "mode": "source"
           }
         }
       }
@@ -69,7 +69,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Intermediate/Video Notes.md",
+                "file": "Modeling The Living Cell/Class Notes.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -85,6 +85,8 @@
     "width": 300
   },
   "lastOpenFiles": [
+    "Modeling The Living Cell/Class Notes.md",
+    "Modeling The Living Cell/Problem Sets/Problem Set 2.md",
     "Intermediate/Video Notes.md",
     "Intermediate/Class Notes.md",
     "Intermediate/C Notes - Kernighan.md",
