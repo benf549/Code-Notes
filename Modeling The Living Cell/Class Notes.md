@@ -565,3 +565,273 @@ $\Delta X_{ij} = x_i - x_j$
 $\Delta X_{ij} = \Delta X_{ij} - Boxlength * round(\Delta x_{ij} / boxlength)$
 
 ![image-20210211144933873](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210211144933873.png)
+
+
+
+#### Week 4 - Tuesday
+
+Switch from an atomic level to a population. We are now talking about chemical kinetics and rate equations. Instead of thinking about structure and how that impacts interactions, we're going to think about rates of interactions. 
+
+##### How Do We Explain Time Dependence of Interacting Species Populations
+
+We are going to develop rate equations from chemical kinetics. We worry now about time dependence rather than spatial interactions. We need to understand problems that are classically solvable with pen and paper or if you need a computer to do it. We want to have toy models available that we can validate our models with.
+
+Given concentrations of the species at $t_0$ what are they at $t_{later}$. This can be predicted directly in simple cases. 
+
+Michaelis-Menten
+
+$E + S \leftrightharpoons ES \to E + P$ 
+
+Reversible binding followed by chemical reaction. When you have a high substrate concentration, the steady-state approximation gives the rate of reaction. 
+
+##### Classes of Reactions Between Populations
+
+1. Zeroth Order
+
+   * $\empty \stackrel{k_0} \to A$
+
+     * $ \frac {dA} {dt} = k_0 $
+       $$
+       \int dA = \int k_0 dt \\
+       A(t) = k_0 t + c
+       $$
+
+     * We then use an initial condition to solve for $c$ 
+
+     * $k_0$ has units of concentration per time.
+
+2. First Order (Unimolecular Reaction)
+
+   * $A \stackrel{k_1}\to B$
+
+     * $\frac {dA(t)} {dt} = -k_1 A(t)$
+
+       * Every time an A is consumed, a B is produced. Only reactants contribute to change in time
+       * Here, the unknown is A(t), the parameter is $k_1$ and t is the independent variable. Solve by separation of variables
+
+       $$
+       \int \frac{dA(t)}{A(t)} = \int -k_1 dt \\
+       ln(A(t)) = -k_1 t + c \\
+       A(t) = A_0 e^{-k_1t}
+       $$
+
+       * This is is a really good example of exponential decay. The Half-Time is how long it takes for the population to decay to half of starting concentration $A(t_{1/2}) = \frac {A_0} 2$ and solving we get $t_{1/2} = ln(2)/k_1$
+         * The half time is entirely dependent on the rate constant. 
+       * $k_1$ has units of $\frac 1 {time}$
+
+3. Second Order (Bimolecular Reactions)
+
+   * When two things bind to eachother. 
+
+   * $A + B \stackrel{k_2} \to C$
+
+     * This is a search problem, even though A and B are homogeneously mixed in solution. The concentrations of A and B dictate how quickly they can combine and form C. This is LeChatelier's principle. Changing the concentrations change the speed of reaction. This is not the case for a first order reaction. 
+
+     * $\frac {dA(t)}{dt} = -k_2 A(t)B(t)$
+
+     * $\frac {dB(t)}{dt} = -k_2 A(t)B(t)$
+
+     * $\frac {dC(t)}{dt} = k_2 A(t)B(t)$
+
+       * The unknowns here are the concentrations of A and B. We have one parameter which is the rate constant. This relationship is non-linear. We have a product of unknowns.
+         * We can write A as a function of B which gives a quadratic equation. Why is the rate of change of A dependent on the product of A and B? 
+       * $k_2$ has units of volume/time or 1/(concentration * time)
+         * In 2 Dimensions, $k_2$ would have units of area/time and concentration would be measured in area/time
+
+     * $A + A \to C$
+
+       * $\frac {dA}{dt}= -2k_2 A^2$
+         $$
+         \int \frac {dA} {A^2} = \int-2k_2 dt \\
+         \frac{-1}{A} = -2k_2t+C \\
+         A(t) = \frac {A_0} {2k_2 A_0 t + 1}
+         $$
+         where $C = -1/A_0$
+
+   * The bimolecular process is initially faster, then concentration drops and other orders become faster
+
+     * Half-time: $t_{1/2} = \frac{1}{2k_2A_0}$
+       * dependent on the initial concentration AND the rate constant for the reaction. 
+
+4. Higher order reactions we assume do not happen as they are so statistically unlikely. 
+
+5. Reversible Reactions
+
+   * $A + B \underset{k_r}{ \stackrel{k_f}{\leftrightharpoons}} C$
+     * $\frac {d[A]}{dt} = -k_f [A] [B] + k_r [AB]$
+       * $A_0 + AB_0 = A(t) + AB(t)$
+       * $B_0 + AB_0 = B(t) + AB(t)$
+     * We want to find the steady state. The steady state is defined when $0 = -k_f [A]_{eq}[B]_{eq} + k_r [AB]_{eq}$
+       * Solving gives the relationship $K_{eq} = \frac{[A]_{eq}[B]_{eq}} {[AB]_{eq}} = \frac{k_f}{k_r}$ which is independent of time and only dependent on equilibrium concentrations. 
+
+Rate equations are in chapter 15 in the text. They are ubiquitous in kinetics.       
+
+"Show Up On Exam"
+
+Linear is linear in the unknown variable
+
+Nonlinear is nonlinear in the unknown
+
+> $y = x^3 + x^2 + 1$ is linear in the unknown. If we were solving for the roots of the function as in $0 = x^3 + x^2 + 1$, now X is the unknown and the solution is nonlinear. 
+>
+> When you have a linear system, it is easy to solve analytically
+>
+> To determine linear vs linear
+>
+> * Dependent variable appears non-linearly.
+>   * $dx/dt$ and $d^nx/dt^n$ are always linear operators. All derivatives of the n-th order are linear. 
+>   * $d^2x/dt^2 = wx = f(t)$ where $f(t) = sin(t)$. The derivative is linear because $f(t)$ is completely independent of x. If x was squared in the second relationship or a log, then it would not be linear.
+
+Nonlinear equations are particularly interesting even though they aren't always solvable.
+
+A differential equation that is nonlinear is sensitive to its initial conditions. When we do MD, our force is highly nonlinear. Different simulations will diverge over different initial conditions. 
+
+Nonlinear equations have "multi-stability" or "bifurcation". Even with a fixed set of initial conditions, different parameters can give wildly different stable states. This never happens with linear equations. 
+
+
+
+#### Week 4 - Thursday
+
+Numerical Methods for Rate Equations
+
+These will be a focus of homework 3. When you can't solve the equations analytically, we can use numerical methods on computers to describe the system.
+
+there are two main ways:
+
+1. Deterministic - standard numerical methods for ordinary differential equations. You have one initial condition which results in one future.
+2. Stochastically - dependent on random variables. Use a master equation formalism. Predict a probability distribution of future concentrations and take the average of the distribution. Stochastic requires that the particles are integer values and thus, there is a possibility for the solution from these processes to diverge from the deterministic functions. To avoid the problems, we use large samples as errors really only arise on small sample sizes. 
+
+
+
+##### Stochastic Methods
+
+ODEs can be first order, such that you have a single first derivative: $\frac {dy(t)} {dt} = f(y(t), t)$
+
+Second order ODEs are functions of second derivatives $\frac {d^2y}{dt^2} = f(\frac{dy(t)}{dt}, y(t), t)$. 
+
+Any higher order equation can be solved as a system of first order equations. 
+
+For rate equations, these are initial value problems. Sometimes for bounded systems, there are also spatial concerns. 
+
+Now we will look at first order problems:
+
+Almost all of these solutions will be based on the Taylor expansion. 
+$$
+\frac {dy(t)}{dt} = f(y(t), t)
+$$
+How do we choose these solutions? There are two considerations we want to make: Truncation error from not expanding the Taylor series out far enough and Stability (stiffness) which describes how rapidly the function changes. When the function changes very quickly, it is harder to approximate with small steps like in a Taylor series expansion. 
+
+As $h$ the size of the step in time goes down, the error in the approximation goes down. For any Numerical Method, we have a tradeoff between the speed of the algorithm and the time complexity.
+
+The simplest approximation is based on a first order Taylor expansion which we call Euler's method:
+
+A second order Taylor expansion for a generic function. 
+$$
+f(t + \Delta t)  = f(t) + \frac {df(t)}{dt}(\Delta t) + \frac {\Delta t^2}{2!}\frac {d^2f}{dt^2}
+$$
+Euler's method truncates the function at the first derivative parameter. For this to work, we must have $\Delta t < 1 $ for the higher order terms to be insignificant:
+$$
+f(t + \Delta t)  = f(t) + \frac {df(t)}{dt}(\Delta t)
+$$
+We are approximating the value of a function a time step away from our current position. 
+
+> we know that the first order rate is desribed by $\frac {df}{dt} = -kf$ which is solved with exponential decay. Knowing this, we can check our numerical method's accuracy.
+
+The error from Euler's method is described by $O(\Delta t^2)$. Euler's method is the worst possible method.
+
+We can improve the approximation by employing a centered approximation as was described in the textbook reading for last class. MATLAB uses the Runge-Kutta method which truncates at higher order $\Delta t$ 's
+
+See handwritten notes to for difference between implicit and explicit methods. 
+
+
+
+##### Stochastic Simulation
+
+Also known as the Gillespie Algorithm which is described in the textbook in chapter 19, but the original paper is actually pretty good and readable. 
+
+Gillespie is an exact algorithm. The other methods we talked about had error that went with the $h$ or size of the time step. 
+
+This is an exact method that solves coupled chemical reactions and it can handle, 0th, 1st, and 2nd order reactions. 
+
+It is very specific to solving the problem of chemical reactions. It even works with 3rd order reactions despite them being unlikely to occur. 
+
+The algorithm captures fluctuations in the particle number. It is event driven so there is no fixed $\Delta t$. Because there is no discretization of time, there is no error associated with this. Solves for integer copy numbers. 
+
+Assume species are well mixed in volume: $V$, the number of initial species is $N$ there are $m$ reaction channels that allow these species to interconvert and interact such as the forward and reverse reactions and any side reactions. 
+
+The well mixed requirement breaks down at phase boundaries
+
+Suppose we have $x_1, x_2, x_3 \underset{t}\to x_1(t), x_2(t)$
+
+we define the Master Equation:
+$$
+\frac {dP}{dt}(x_1, x_2, x_3, t) =  \sum_{\nu = 1}^m = P(\vec x-\nu,t)a(\vec x-\nu) - P(\vec x, t)a(\vec x)
+$$
+the rate of change of being in the state is the rate of being in the state or the rate of leaving the state. Probability is jumping into state minus jumping out.
+
+For a simple model:
+
+Suppose we have two reactions: $x_3 \to x_3 + x_1$ (at $k_1$)and $x_1 \to x_2$ (at $k_2$)
+
+the transition probabilities are: $a_1 = x_3 k_1$ and $a_2 = x_1 k_2$
+
+prediction: $1 - (a_1 + a_2)$
+
+for this scheme, we have to keep track of the copy numbers for x_1 and x_2.
+$$
+P(x_1, x_2, t+dt) = P(x_1, x_2, t) \times (1 - (a_1 + a_2)) + \Delta ta_2 P(x_1+1, x_2-1, t) + \Delta t a_1 P(?)
+$$
+**I didn't catch that whole thing. **
+
+
+$$
+P(\tau, \mu)d\tau
+$$
+where tau is the time interval and $\mu$ is the reaction types. mu is on the interval 0 to m and tau is on zero to infinity.
+
+Average transition probability for a 0th order reaction is $C_\mu = v*k_\mu$
+
+where C is the probability. 
+
+For a first order reaction: $C_\mu = k_\mu$
+
+second order reactions are $C_\mu = \frac {k_\mu}{v}$
+
+We then need the reaction propensity which depends on copy numbers.
+
+For a 0th order reaction $h_\mu =1$ 1st order is $h_\mu = x_1$ and 2nd order is $h_\mu = x_1x_2$
+$$
+a_\mu dt = h_\mu C\mu dt
+$$
+
+$$
+P(\tau, \mu) = P_0 (\tau) P(\mu, \Delta \tau) = P_0(\tau)a_\mu d\tau = P_0(\tau) = e^{-\sum_\mu ^m a_\mu \tau}
+$$
+
+ This was an obviously complicated derivation but implementing the algorithm itself is not that bad. 
+$$
+P(\tau, \mu) = P_1(\tau)P_2(\mu) \\
+P_1(\tau) = a_0e^{-a_0\tau} \\
+P_2(\mu) = \frac {a_\mu}{a_0} \\
+a_0 = \sum_{\mu=1}^m a_\mu \\
+\tau = \frac 1 {a_0}ln(\frac 1 {URN})
+$$
+To sample we have 
+$$
+\sum_{\nu = 1} ^{\mu -1} a_{\mu} / a_0		\lt URN2
+$$
+The pseudocode:
+
+```pseudocode
+1. Initialize species concentrations x1, x2 @ t=0
+2. Calculate C_\mu for all reactions (happens once at beginning)
+3. Calculate h_\mu for all reactions which changes on every iteration. h is the propensity of the reaction that changes based on the number of species in solution.
+4. Calculate a_0 = sum(all reactions) = sum(c_\mu * h_\mu)
+5. Sample \tau from 1/a_0 ln(URN1)
+6. Sample \mu with \mu(URN2)
+7. Update species involved in reaction \mu. If x_1 goes to x_2, then you lose one x_1 and gain one x_2.
+Repeat from 3 over all cycles. 
+```
+
+the sum over all the $\mu$s is essentially a CDF we are sampling from like in the first homework. 
+

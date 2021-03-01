@@ -804,3 +804,467 @@ Within gdb, `break main` sets a break point at the main function. then `run` wil
 
 `p` is an abbreviation for print
 
+
+
+### Pointer Basics
+
+Suppose we want to mutate the actual values of arguments of functions. We can use pointers to make the parameters of a function pass by reference. To understand this, we need to talk about execution stacks and stack frames (activation record). Variables declared in a function are in memory in the stack. When a function is called, a new stack frame is made and put on top of the stack in memory with all local variables copied. Subsequent function calls get added on top of the stack. Once a function returns the return value is passed into the frame below it, and the stack gradually collapses until main finishes executing. 
+
+Local variables are lost when the stack frame is collapsed. By using pointers, we can pass variables between stack frames. 
+
+A pointer is a variable that can store a memory address. Every pointer has a specified data type that it points to. To declare add an asterisk in front of the variable name as in `*p`. To assign a pointer of something else, we use the address of operator `&x` which returns the address of x. The dereferencing operator `*p` returns the value at that memory location. 
+
+```c
+int x = 1;
+int y = 2;
+
+int *ip; //Initialize pointer called ip
+
+ip = &x; //point ip to x.
+
+y = *ip; //sets y to the value contained at the location of x.
+
+*ip=0; //sets the location containing x to zero (sets x to zero)
+```
+
+To improve the swap function to actually change the variables around:
+
+```c
+void swap(int *px, int *py) {
+    int temp;
+    temp = *px; //set temp to value held in x
+    *px = *py; //set x to value held in y
+    *py = temp;  //copy value held in temp to value at y address.
+}
+```
+
+`*ip` can do anything that the normal variable can. The pointer operators have 'unary operator precedence'. You want to be careful with incrementation because `*ip++` will first increment the memory address and then will get the value at that address which probably isn't what you want. Rather, we want to write `(*ip)++` to ensure that we first get the value at `ip` and increment that. 
+
+### Dynamic Memory Allocation
+
+When we define a 2D array, the memory is allocated in one large block. The first row followed by the second followed by the third and so on. 
+
+There is a way to write a function that returns an array. The problem with this is that anything defined in the function is local. Once the function is exited, you lose access to those variable from that stack frame. Furthermore, declaring arrays that are too large will run out of memory. 
+
+Dynamic allocation allows us to get around these limitations. We no longer define our variable on the stack as we have been doing. We can do things on the 'heap' which is a lot larger than the stack. Defining a variable on the heap is also persistent between stack frames. The problem with doing this is that we need to collect our garbage-we need to de-allocate that memory or else we cause a memory leak. 
+
+We use the `malloc()` function to allocate memory. 
+
+```c
+int main(){
+    int *ip = malloc(sizeof(int)); //define an integer pointer that points to memory for one int
+    if (ip == NULL){
+        return 1; //an error occurred (maybe size was too large.)
+    } else {
+     	return 0;   
+    }
+}
+```
+
+We can also use `malloc` to allocate memory for arrays like this:
+
+```c
+int main() {
+    int n = 35;
+    int *a = malloc(sizeof(int) * n); //define array for 35 integers on heap.
+}
+```
+
+the array can then be indexed as normal. 
+
+To deallocate memory once we no longer need it, we use the `free` command. We call it on the pointer that we defined earlier. 
+
+```c
+int main(){
+    int *ip = malloc(sizeof(int)); //define an integer pointer that points to memory for one int
+    if (ip == NULL){
+        free(ip)
+        return 1; //an error occurred (maybe size was too large.)
+    } else {
+        free(ip)
+        ip = NULL
+        return 0;   
+    }
+}
+```
+
+Allocation and deallocation of memory do not have to occur in the same function. They can occur wherever dynamically but you NEED to free allocated memory to avoid memory leaks. 
+
+```c
+int* createArray(int size) {
+    int *a malloc(sizeof(int)*size); //put the array on the heap
+    if (a == null) {return NULL} //if it doesnt work return nothing
+    //You want to also initialize the array to some values here. 
+    return a;
+}
+
+int main() {
+    int *list = createArray(10); //call to function that returns a pointer must store a pointer
+    if (!list) {return -1;} //check error
+    for (int i = 0; i < 10; i++){
+        printf("%d ", list[i]); //print array contents (uninitialized at the moment)
+    }
+    free(list); //FREE THAT MEMORY
+    list = NULL; //This is unnecessary because the program is ending, but it's a best practice. 
+	return 0;
+}
+```
+
+More functions for dynamic memory allocation:
+
+`realloc` if you want to resize an area of memory. It may move the initial memory address elsewhere so you need to handle this. Needs to keep everything continuous. `realloc(prev_pointer, sizeof(int)*100)` 
+
+`calloc` is similar to `malloc`, but it initializes all bits to 0 which is pretty useful! `calloc(10, sizeof(int))` will initialize all the bits for 10 integers worth of memory to zero and return the pointer to that array. 
+
+### Valgrind
+
+A debugging tool that helps find memory related issues like leaks, invalid reads. Again, need the `gcc -g` flag like gdb. To use valgrind we run:
+
+`valgrind --leak-check=full ./myFile <arg1> <arg2> ...`
+
+first thing to look at is **error summary**. Then if 'all heap blocks were freed'. Helps find memory leaks, invalid writes and reads. 
+
+
+
+### Pointer Arithmetic
+
+There are four different things you can do with pointers. There are operations on pointers, there is pointer arithmetic for arrays, and string operations, and a special subtraction operations. 
+
+#### Pointer Assignment
+
+When you assign a pointer to another pointer of the same type, only the memory address held in ptr2 is copied. They reference the same memory location. 
+
+`ptr1 = ptr2;` results in the two pointers referring to the same unnamed memory location. If you were to then do `*ptr1 = 10;` then `*ptr2 = 10` as well. 
+
+#### Pointer Comparison
+
+We can compare pointers to see if they point to the same memory address as in `ptr1 == ptr2` and `ptr1 != ptr2`. We can check if a pointer is assigned with the `NULL` keyword. `ptr == NULL` will check if `ptr` is set to zero which is a good value to initialize pointers to. 
+
+We can also use pointer comparison with `ptr < ptr2` which compares the locations in memory which can be useful for when you have an array and want to see where in it an item is. 
+
+#### Pointer Arithmetic
+
+Operators `-, +, +=, and -=` can all be used to manipulate pointers. You can add two pointers or add integers to pointers. This is most useful for pointers to arrays. Rather than adding that integer to the address, it adds that number times how many bytes each element takes up. So, we don't need to multiply by the `sizeof` operator. C will automatically move us the base data type's byte size. This is just a different way to index arrays. 
+
+`a[10]` is really just 10 data types past the address of `a[0]`. Writing `a[0]` is actually the same as writing `&a[0]`. 
+
+Similarly, writing `a[3]=20` is the same thing as writing `*(a+3) = 20` puts the value 20 at the memory address offset three from pointer to the start of the array. 
+
+#### Pointer Difference
+
+Use a special type to hold the difference between pointers. This type is `ptrdiff_t` which is defined in the `stddef.h` file. Essentially just works as a long int. 
+
+Pointer difference can be used to find the size of an array if you know the first and last element. 
+
+
+
+```c
+char string[] = "hello"
+char* ptr = string;
+ptr += 3;
+printf("%s\n", ptr);
+// prints 'lo'
+```
+
+Using pointers can process substrings. 
+
+#### Common Arithmetic Errors
+
+```c
+char str1[] = "original";
+char * str2;
+```
+
+If you try to use `strcpy(str2, str1)`, you will get an error because no memory was allocated for `str2`. For this to work we would have to do `str2 = malloc(strlen(str1)+1);`
+
+`str1 += 3` will not work because we cannot change the address stored in a statically declared array variable. You can't change the pointer to the first element because this would lose values.
+
+`str2 = str1` only copies the memory address stored in str1 not the whole array. This just points str2 to where the array is but since str2 is not an array and is a pointer, the assignment is just a pointer. 
+
+### Dynamically Declared Arrays, `Const` Pointers
+
+Arrays are laid out in memory by row. First the entire row, then the next row. Because the array is stored in memory this way, we can use pointer arithmetic to get to different array locations without double indexing. 
+
+#### Dynamically Allocating a 2D array
+
+If we know we want 5 rows by 2 elements, we could just allocate a length 10 array. 
+
+Another approach we could do would be to allocate an array of pointers to pointers. 
+
+```c
+int **a = malloc(sizeof(int*) * num_rows);
+
+for (int i = 0; i < num_rows; i++) {
+    a[i] = malloc(sizeof(int) * num_cols);
+}
+
+a[2][1] = 17; //this works
+
+for (int i = 0; i < num_rows; i++) {
+    free(a[i]);
+}
+free(a); //need to free both allocated indices and the memory allocated for the indices.
+```
+
+Essentially what this is doing is that we are allocating 3 integer blocks per index in a. Interestingly, this probably won't allocate each block sequentially but indexing like a normal array still works! We have to be conscious of freeing each of the indices and the array to those pointers as well.
+
+Regardless of whether the array is statically allocated or dynamically allocated, we can use rows of 2D arrays as one dimensional arrays. 
+
+It is possible to dynamically allocate rows for a 2D array that are not all the same length. This is probably not that useful. This would be considered a non-uniform or jagged 2D array. Could be useful to create a parallel array that holds the lengths of each row to index to keep track if you ever need to do this. 
+
+#### `const` keyword
+
+We can use the type modifier `const` to make the variable non-modifiable. When working with constant variables, and passing them to functions, the variable parameter must also be defined as a constant type as well. 
+
+`const int * pointer` protects the thing the pointer points to (mutable pointer)
+
+Using `const` with pointers. What gets stored in the pointer is not allowed to be changed but the pointer itself can be changed. Once the value that the pointer points to is assigned, it cannot be changed at that memory address. You CAN reassign the pointer to another value. 
+
+`int * const pointer` makes it so that the pointer cannot be changed but the contents inside the array can be. The address must be set at declaration time if you want this to be useful or could be in the parameter of a function declaration. Prevents assignments that would change the address stored in the pointer. 
+
+`const int * const pointer` would make the address of the pointer and the value at that memory immutable. 
+
+### Lifetime/Scope
+
+The lifetime of a variable is the period of time in which a variable is alive in memory. The scope is the blocks of code that the variable is accessible. Local variables' lifetimes begin when we enter a function and end when we exit a function. Local variables are allowed out of scope when we pass them as arguments to other functions. 
+
+A variable can be in scope and temporarily hidden when an inner scope declares a variable with the same name.
+
+```c
+int main() {
+    int i = 12;
+    for (int i = 0; i < 10; i++)
+        printf("%d", i);
+    printf("%d", i);
+}
+```
+
+#### Static Variables
+
+declared using the static keyword. Have scope similar to local variables, but have a longer lifetime. They are automatically created and initialized to zero but are not destroyed at the end of a block of code. The next time that same block of code is executed, the value of the variable is retained. 
+
+```c
+int addInt(int x, int y) {
+    static result;
+    result += x + y;
+    return result
+}
+
+int main() {
+    printf("add %d + %d = %d", 3, 4, addInt(3, 4)); //returns 7
+    printf("add %d + %d = %d", 3, 4, addInt(3, 4)); //returns 14
+ 	return 0;
+}
+```
+
+#### Global Variables
+
+Automatically created when the function is begins executing. If can be accessed within any function in a file. They have universal scope. We don't allow global variables because they make the debugging process much harder than it needs to be. 
+
+#### Storage
+
+Static and Global variables live in the Data Segment which his a region of memory that is filled when the program executes. 
+
+### Structure Data Type
+
+In C a `struct` is a bunch of variables grouped together in one bundled variable. We don't have classes in C so we cannot have functions associated with `structs` we can only have values. 
+
+```c
+struct checkers_piece {
+    int x;
+    int y;
+    int black;
+};
+
+int main() {
+    struct date {
+        int year;
+        int month;
+        int day;
+    };
+    
+    struct date purchase_date;
+}
+```
+
+`sizeof()` a struct is the sum of the size of its fields. When you pass an array into a function, it decays into a pointer and `sizeof ` will return the size of an address. Passing the struct as a wrapper around arrays will make copies of the arrays making them pass by value and the `sizeof` operator will accurately get the size of the array.
+
+The size of the struct might be bigger than the size of its fields. Sometimes the C compiler will add padding between its fields. This may happen when you have attributes with different types. 
+
+`struct`s can be passed in as parameters and returned as return types. 
+
+`struct`s are **pass by value** so we need to return a struct changed in a function or take in the pointer to the struct and make changes to that. 
+
+There is a special operator that combines dereferencing with the `.` operator. This is useful when we pass a pointer to a struct as a function argument. To use this we can replace `(*date).day` with `date->day` we are incentivized to use pointers as struct parameters as we can make changes anywhere in the program that has access to the struct. If we have the structs in the struct, updates will propagate throughout.
+
+You can also type an array to hold structs. To assign values to each item of the array just index and use the `.` operator to access each value. 
+
+You can also have arrays inside structs. 
+
+#### `typedef`
+
+If we don't want to keep writing the struct keyword when using a lot of structs
+
+```c
+typedef struct {
+	float amount;
+	char cc_number[16];
+} cc_receipt;
+
+cc_receipt hello; //don't have to prefix with struct anymore. 
+```
+
+#### Nested Structures
+
+```c
+typedef struct {
+    struct {
+        int r;
+        int g;
+        int b;
+    } color;
+    struct  {
+        int x;
+        int y;
+    } position;
+} pixel;
+
+int main() {
+    pixel p;
+    p.color.r = p.color.g = p.color.b = 255;
+    p.position.x = 40;
+    p.position.y = 50;
+    printf("[%d, %d. %d] at (%d, %d)\n", p.color.r, 
+           p.color.g, p.color.b, p.position.x, p.position.y);
+    return 0;
+}
+```
+
+In the above example, we don't name the sub-structs, they are created only when defining the color and position names. 
+
+### Random Numbers
+
+In C, `rand()` will return a value between 0 and RAND_MAX in the uniform distribution. 
+
+We can seed the random number generator with the `srand(unsigned int)` function. If `srand` is not specified, the program runs `srand(1)`. If you want a unique sequence of random numbers every time the function is run, we can pass the function the epoch time: `srand(time(0))` after `#include <time.h>`
+
+This will create a new random number sequence as long as the program isn't being called more than once per second. 
+
+We can use the modulus operator to constrain the values of the modulus operator and we can also shift the values with subtraction once we constrain the values:
+
+![image-20210222121905492](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210222121905492.png)
+
+We can generate floating point numbers with the following code:
+
+```c
+((rand() % 100000) / 100000.0) // which generates an inclusive range from 0.0 to 0.99999
+((rand() % 100001) / 100000.0) //which generates from 0.0 to 1
+```
+
+Increasing the integer and float being modulo-d increases the resolution of the random numbers. The hard maximum of the random number resolution (granularity) from zero to one is
+
+```c
+rand() / (double) (RAND_MAX - 1)
+```
+
+### Binary File I/O
+
+Working with the bits and bytes directly rather than text. Anything that isn't a text file is a binary file. Storing data in binary is much more efficient than storing them in text format.
+
+To store `255` as text, it is treated as 2, 5, and 5 as characters and thus takes 3 bytes. If we convert it to binary, it can be represented as only one byte.
+
+To read and write to binary files:
+
+```c
+FILE *fp = fopen("data.dat", "rb"); //opens the file in binary read mode
+fread(where_to, size_of_elements, num_elements, fp); //first is an array to store values, second is size of elements, third self ex. 
+fwrite(where_from, size_of_elements, num_elements, fp);
+```
+
+for example:
+
+```c
+int main(){
+    int SIZE = 100;
+    int arr_write[SIZE];
+    for (int i = 0; i < SIZE; i ++)
+	    int arr_write[i] = i * 10;
+    File *fp = fopen("data.dat", "wb");
+    fwrite(arr_write, sizeof(arr_write[0]), SIZE, fp);
+    fclose(fp);
+    
+    int arr_read[SIZE];
+    fp = fopen("data.dat", "rb");
+   	int num_of_ints = fread(arr_read, sizeof(arr_Read[0]), SIZE, fp);
+    
+    for (int i = 0; i < 100; i++){
+        printf("arr_read[%d] = %d\n", i, arr_read[i]);
+    }
+    flcose(fp);
+}
+```
+
+### Bitwise Operations
+
+Manipulates values at the bit levels in binary. Syntax is single operator rather than double operator. 
+
+#### AND Operator
+
+AND between two bits is done with one ampersand: 
+
+`12 = 00001100`
+
+`25 = 00011001`
+
+`12 & 25 = 00001000 = 8` which is the value when each bit is compared and only set to 1 when they are  both 1
+
+#### OR Operator
+
+Performs logical or across all bits as AND
+
+`12 = 00001100`
+
+`25 = 00011001`
+
+`12 | 25 = 00011101 = 29` which is the logical or of each bit compared. 
+
+#### Bit Shifting
+
+`x << n` shifts the bits of x to the left N positions. N 0s are shifted in at the right hand side and N bits fall off the left hand side
+
+`25 = 00011001`
+
+The bitwise shift of `25 << 5` introduces 5 zeros on the right:
+
+`25 << 5 = 1100100000 = 800`
+
+When you shift bits to the left you are basically multiplying the number by two. For example, shifting 25 to the left 5 bits, results in 2^5^ * 25 = 800
+
+`x >> n` shifts the bits of x to the right N positions analogously
+
+This is essentially (floor) division by powers of 2: 
+
+`25 = 00011001`
+
+`25 >> 4 = 00000001 = 1` which is the same as doing floor(25/2^4^)
+
+#### Convert an Integer to its Binary Representation in A String
+
+```c
+int num = 53;
+char bin_str[33] = {'\0'}; //make a 32 bit string with every position null
+int tmp = num;
+for (int i = 0; i < 32; i++) {
+    if ((tmp & 1) != 0){ //check if rightmost bit is 1 or zero.
+        bin_str[31 - i] = '1';
+    } else {
+        bin_str[31 - i] = '0'
+    }
+    tmp >>=1; // shift right by 1
+}
+printf("%d in binary is %s\n", num, bin_str);
+```
+
+#### Other Operators
+
+There is also `^` for XOR and `~` which flips every bit in the number from 0 to 1 and 1 to 0.

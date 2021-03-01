@@ -565,3 +565,122 @@ This works well for low to medium GC content genomes but does not work very well
 
 
 
+## 02/16/21
+
+`MUMMER` is an aligner that contains a lot of different useful packages. What is whole genome alignment. For two genomes A and B, find a mapping from each position in A to its corresponding position in B. When he was sequencing the tuberculosis genome they needed a way to compare two sequences. 
+
+Genomes can change over time. SNPs and mutations vary by individual. 
+
+Plots can visualize alignments with an identity plot which shows identity (percent similarity) as a function of position along the genome. If we want to look at changes, we can use dot plots. We have the genomes in a matrix NxM where rows are the position in genome A and j are the position in genome B. We plot the matrix by filling in a dot at (i,j) if A and B are identical. If A and B are identical, you just get a straight line from zero to N, N.
+
+Here are the patterns for the various types of changes between chromosomes. 
+
+![image-20210216151144577](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210216151144577.png)
+
+Here the pink part and the blue part were swapped in B. 
+
+
+
+### Alignment
+
+Once we have assembled genomes, we compare them to reference genomes with alignment. We want to do a whole genome ideally, but we can't really do this because there are so many changes between large genomes.
+
+To compensate, we have to use small pieces at a time. 
+
+When we use Whole Genome Alignment, we do synteny analysis which looks at evolutionary conservation of large chunks of DNA, polymorphism detection, and sequence mapping.
+
+Multiple Genome Alignment identifies conserved sequences between species. 
+
+Multiple Alignment allows us to figure out the evolutionary history of all species. 
+
+Local Alignment allows us to identify similarities in small sequences between species like protein alignments. 
+
+Mummer stands for Maximal Unique Matcher. 
+
+* A match is an exact match of some minimal length
+* Maximal gives the longest sequence that is bounded by mismatches
+* Unique occurs only once in both sequence 
+  * A MUM is exact match with no repeats while a MEM (Maximal Exact Match) allows repeats. MUMMER can find both. 
+
+The exact match criteria makes it difficult because the sequences have to be exact. Uses a Seed and Extend strategy - finds an exact MUM, then extends the matches and tries to connect them. Finds all MUMs and clusters consistent MUMs. Extends the alignments between the mums and fills in between them. This is done by the `nucmer` program that we will run that is in the Mummer package
+
+Uses a data structure called a suffix tree for sequence alignment. Makes a tree of all ends to the string. Includes the string itself, its last character, and then all of the other endings starting from different positions within the sequence. 
+
+To build a suffix tree first put the whole string in, then look from second index, and add to tree. Since it starts with another letter, add a new edge. Then put third index in and split the side of the tree if the first few characters are shared between existing nodes and the new nodes.  
+
+#### Clustering
+
+Sums cluster length and can calculate the indel factor that separates clusters. Score the alignment based on difference. The alignment can be done with the Smith-Waterman algorithm. Nucmer uses Banded alignment to align the sequences. 
+
+The seed and extend algorithm may not work when sequences are highly divergent, yet are homologous. Many conservative substitutions may result in the same protein sequence with highly different DNA sequence. DNA may not align well, but proteins do. It is more useful then to sequence the proteins and align those. `promer` translates the DNA in all 6 reading frames and aligns the proteins and maps the alignments back to the protein sequence. 
+
+![image-20210216155223939](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210216155223939.png)
+
+![image-20210216155241432](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210216155241432.png)
+
+NUCMER is hundreds of times faster than BLAST.
+
+MUMMER/NUCMER helps identify differenced between alignments.
+
+
+
+For the homework, we will align proteins. To figure out protein names, we align to reference genome. 
+
+## 02/18/21
+
+### Genome Organization in Bacteria
+
+#### Operons
+
+In bacteria, there are genes that can be co-transcribed meaning some genes can be transcribed more than one at a time. Genes can generally be transcribed in units called operons. The genes are transcribed onto a single piece of RNA. This generally doesn't happen in humans, but generally does in bacteria. The amount of the gene that the cell produces of that gene is pretty much the as all of the other genes on that RNA strand. 
+
+When the genes are connected by transcription, they are generally biologically related as well. 
+
+Polymerase will stop transcribing when it reaches a termination sequence. Operon genes must face the same direction. The polymerase binds at the promotor.
+
+We can find these operons computationally by looking for a promotor and terminator sequences between genes in the same direction. There are also intrinsic terminators which are not consistent sequences. These work by forming hairpin loops which are the DNA binds back onto itself even if the bases aren't perfect matches. This forms a loop of a few bases that are followed by a sequence of T residues. We can look for sequences that fit this description. When polymerase reaches the line of many T residues, it can recognize that it has passed a loop and will fall off ceasing transcription. 
+
+To find intrinsic terminators, we score regions for having a sufficient number of T residues and score the energy of the residues predicted to bind eachother and forming the loop. 
+
+They created a program that can find operons called TransTerm. 
+
+### Phylogenetic Trees
+
+Molecular evolution studies the changes in genes, proteins and genomes to understand how things have evolved over time. Phylogeny is the inference of evolutionary relationships. This is all done with molecular sequence data basically. 
+
+Sequence alignments of globin genes between animals were aligned and scored based on distance between the animals. This was done first by Margaret Dayhoff. This would be a tree of orthologs. You could also make a tree of paralogs that compare similar proteins across and within species. Paralogs are those that are related within the same organism. 
+
+Protein sequences evolve at a constant rate based on the freedom they have to evolve in their structure.
+
+Positive selection is when traits that enhance survival are selected for, negative selection traits that harm you are selected against. 
+
+**I fell asleep....**
+
+
+
+## 02/23/21
+
+More on phylogenetics and virues
+
+### Phylogeny Continued
+
+How are trees built: 
+
+There are a many different algorithms for computing phylogenetic trees. For tree building methods like UPGMA, use a distance metric such as nucleotide differences between MSAs. Calculates the pairwise alignments for each sequences. The lowest distances are grouped. Can use clustering algorithms to identify closest groups and distances from groups to other groups. UPGMA trees are always rooted. It makes the assumption that molecular clocks are constant in sequences for the tree which isn't always true necessarily. 
+
+Neighbor joining connects neighbors creating an unrooted tree.
+
+Maximum parsimony looks at differences between columns in an MSA - character-based methods. Consider all possible ways to make a tree and then minimize the cost/number of features. 
+
+You can also use maximum likelihood estimation with a model of mutation likelihoods. 
+
+### Viruses
+
+Viruses mutate fast enough that we can observe evolution and build phylogenies for them and know when we are correct.
+
+The flu genome is an RNA virus that had 8 segments with particles around 1 to 2 microns. The virus was not discovered until the 1930s because they only knew about bacteria back then. Needed a more powerful microscope to see it. 
+
+Has Hemaglutinin and Neuraminidase on its capsid which adhere to cells. Injects its 8 RNA particles into the cell, RNA Polymerase converts the RNA to DNA. The virus RNA is negative strand so the positive strand needs to be created to be translated to proteins. 
+
+We can use Reverse Transcriptase to copy the RNA to DNA and PCR that sample to sequence it. 
+

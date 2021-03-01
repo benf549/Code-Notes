@@ -301,3 +301,21 @@ You can also break on a line number of a given source file like in:
 `break main.c : 12` will break on line 12 in the file main.c
 
 If you don't want to step through a region of code, you can set another break point at the desired location to resume control at with the same `break` syntax. You can use the `continue` keyword to allow execution to resume until the next breakpoint.
+
+
+
+## Week 4
+
+*02/15/20*
+
+### Pointer Recap Questions
+
+What is a pointer? Well a pointer value is a memory address pointer variable. Memory is a big array of bytes. The array is indexable with addresses. The value of a pointer is literally just one of the memory addresses that describes the position of something in memory. This allows us to pass the reference and value to that something around without creating extraneous variables. 
+
+
+
+*2/17/20*
+
+### Memory Allocation Recap Questions
+
+We think about the stack as holding local variables. Stack variables have names and are commonly function parameters and are anything not assigned with `malloc` or `calloc`. Recall the diagram of the stack. When a function returns, the variables disappear. Stack memory is automatically allocated and deallocated. Heap memory must be manually allocated and explicitly deallocated. Java and Python are garbage collected. They both have heap memory, but the garbage collector can determine when objects like classes are no longer needed by the program. 

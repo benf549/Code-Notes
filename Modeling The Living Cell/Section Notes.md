@@ -128,3 +128,138 @@ $$
 Then calculate the Boltzmann Factor $e^{-H/k_b T}$
 
 Last, implement the Monte Carlo Algorithm. Randomly generates a new configuration for the system by a small factor, then decides whether to accept the change based on the difference in energy produced by the change. Determines the likelihood of the system making that transition.  
+
+
+
+#### Monte Carlo Pseudocode
+
+1. Choose a random particle
+
+   1. Use uniform distribution and ensure that each can be selected. 
+
+2. Assign a displacement
+
+   1. Adjust independently by displacement, should be on interval $(-\delta/2, \delta/2)$ 
+
+3. Enforce PBC
+
+   1. $\Delta x = \Delta r - L*round(\Delta r/L)$
+
+4. Calculate LJPE
+
+   1. $v = 4\epsilon[(\frac \sigma {r_{ij}})^{12} - (\frac \sigma {r_{ij}})^{6}]$
+
+5. Calculate probability of acceptance
+
+   1. $P(x) \Pi(x \to x') = p(x') \Pi(x' \to x)$
+      1. $\Pi(x\to x') = g(x\to x')acc(x\to x')$ 
+         1. where g is the probability of moving from the uniform distribution and acc is the prob of acceptance based on the Boltzmann distribution. 
+   2. The probability of being in this state and transitioning to the next state is the same as the probability of being in the next state and transitioning to this state.
+
+6. Update or reject move.
+
+7. repeat for number of particles
+
+   
+
+### Chemical Kinetics and the Gillespie Algorithm
+
+#### Rate Equations
+
+* 0th order rate equations
+  * $\empty \to A$
+    * rate constant $k$ 
+    * $r = k$
+    * $\frac{d[A]}{dt} = -k$
+* 1st order rate equations
+  * $A \to B$
+    * rate constant k
+    * $r = k[A]$
+    * $\frac {d[B]}{dt} = k[A]$
+* 2nd order rate equation
+  * $A + B \to C$
+    * rate constant k
+    * $r = k[A][B]$
+* For a reversible reaction
+  * $A \leftrightharpoons B$
+    * forward rate $k_f$
+    * reverse rate $k_r$
+    * $\frac {d[A]}{dt} = -k_f{[A]} + k_r [B]$
+
+#### Linear vs Nonlinear Differential Equations
+
+I don't think she gave a very good explanation but I missed it if she did.
+
+#### Euler's Method
+
+Comes from the first order Taylor series:
+$$
+y(t + h) = y(t) + h \frac {dy}{dt} + ... + \frac {h^n}{n!} \frac {d^ny}{dt^n}
+$$
+ the first order for which gives:
+$$
+y(t+h) = y(t) + h \frac {dy}{dt}
+$$
+Often, we can assume we start at $t_0 = 0$ and are given a $y_0$ 
+
+The algorithm:
+
+1. define some number of attempts
+2. loop for j in some number of attempts:
+   * $m = f(t_0 y_0)$
+   * $y_1 = y_0 + h*m$
+   * $t_1 = t_0 + h$
+   * $t_0 = t_1, y_0 = y_1$
+3. End and plot.
+
+#### Gillespie Algorithm
+
+Step 1: Define stochastic rate constants based on the equation rate constants. We use $c_\mu$ where $\mu$ is the reaction being described. The general ides is that we need to account for the fact that we don't keep track of concentrations or spatial considerations. We assume all particles are spread evenly throughout the box. Since we have the volume of the box, we build this into the rate constant. We also assume we are at high enough concentrations that one particle removed is approximately equal to the original concentration. 
+
+Unimolecular Reaction has no concentration dependence so it is independent of the size of the box. Stochastic rate constant just equal to rate constant
+
+Bimolecular Reaction depends on A and B colliding and going to C so we define a rate constant: $C_\mu = \frac {k\mu}{V}$ while, if you have a bimolecular self reaction such as $A + A \to B$ $C_\mu = \frac {k_\mu}{V}$
+
+Step 2: Define the propensities: $a_\mu = h_\mu C_\mu$ where $h_\mu$ is the number of ways the reaction can react into other forms. 
+
+Unimolecular Reactions: $h_\mu = n_a$ so the number of ways is just the number of particles of A
+
+Bimolecular Reactions: $h_\mu = n_a n_b$ and for a self reaction we use $h_\mu = \frac {n_a (n_a -1)} 2$
+
+Step 3: Calculate the amount of time between collision events. We don't have a time step until something happens.
+$$
+\tau = \frac {-1} {a_{tot}} ln(URN)
+$$
+where the total propensity is the sum of each reaction propensity. Propensity is recalculated on each iteration through the reaction loop.
+
+Step 4: Choose a reaction 
+$$
+\sum _{i = 1}^{\mu - 1} a_i \lt (URN * a_{tot}) \le \sum_{i = 1}^\mu a_i
+$$
+create a CDF of reaction propensities and choose a random number and pick the first reaction that the random number is less than as in CDF example earlier. 
+
+Step 5: update the system and repeat many times
+
+we can use matrices to update the system. Have a reaction matrix $R_m$
+
+> suppose we have four reactions
+>
+> $E + S \to ES$
+>
+> $ES \to E + S$
+>
+> $ES \to E + P$
+>
+>  $P \to \empty$ 
+>
+> we then need to account for each reaction and species in the matrix. in this case, we will have a 4x4 matrix.
+>
+> | Reaction/Substrate | E    | S    | ES   | **P** |
+> | ------------------ | ---- | ---- | ---- | ----- |
+> | **1**              | -1   | -1   | 1    | 0     |
+> | **2**              | 1    | 1    | -1   | 0     |
+> | **3**              | 1    | 0    | -1   | 1     |
+> | **4**              | 0    | 0    | 0    | -1    |
+>
+> The matrix can be initialized with the other constants as it is defined by the reactions available to the matrix. To update, we just index the row for the reaction and add the value in the row to each of our copy number variables. 
+

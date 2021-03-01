@@ -18,7 +18,7 @@
 
 ###### [Class Link - Tues/Thurs](https://wse.zoom.us/j/92601698863?pwd=Yzg4TTd1UittZDlBSVpqVER0dHJoZz09)
 
-[TA Office Hours - Thurs](https://www.google.com/url?q=https://JHUBlueJays.zoom.us/j/98110812248&sa=D&source=calendar&usd=2&usg=AOvVaw3fAZWtpxYok4S-QZqBC4e6)
+###### [TA Office Hours- Thurs](https://www.google.com/url?q=https://JHUBlueJays.zoom.us/j/98110812248&sa=D&source=calendar&usd=2&usg=AOvVaw3fAZWtpxYok4S-QZqBC4e6)
 
 #### Discrete Mathematics
 
@@ -30,3 +30,6 @@
 
 
 
+#### Natalie Personal Link
+
+https://haverford.zoom.us/j/7173066470
