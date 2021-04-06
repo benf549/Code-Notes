@@ -319,3 +319,41 @@ What is a pointer? Well a pointer value is a memory address pointer variable. Me
 ### Memory Allocation Recap Questions
 
 We think about the stack as holding local variables. Stack variables have names and are commonly function parameters and are anything not assigned with `malloc` or `calloc`. Recall the diagram of the stack. When a function returns, the variables disappear. Stack memory is automatically allocated and deallocated. Heap memory must be manually allocated and explicitly deallocated. Java and Python are garbage collected. They both have heap memory, but the garbage collector can determine when objects like classes are no longer needed by the program. 
+
+## Week 6
+
+### Midterm Project
+
+Sound is just an oscillation of air pressure. The simplest form of which can be represented with a sine wave. The frequency of the wave is the number of cycles per unit time. Higher frequency waves sound higher to the ear. When combined, we can form complex sounds. 
+
+Sound is represented in the computer as an array where each element is a sample at a given reading of the air pressure at an exact moment. Basically an array where each index is a very small time step and the value is the value of the oscillation. We will use 44.1 kHz as our sampling frequency. 
+
+We need to use binary io to read and write integers to binary files. Digital audio is stored in binary files rather than text files. 
+
+The core of the project is synthesizing audio waveforms that we have to implement. We have two functions provided for WAV files. A WAV file is a header followed by the array of binary values. The header IO is provided to save us time.
+
+`file` in Linux can check if your file is valid.
+
+## Week 7
+
+C++ is the better choice for writing programs that don't need to directly interact with the machine hardware.
+
+A namespace helps handle instances where you use the same name for a data type as another package. Ensures that your defined variables don't conflict. The `std` namespace contains all the default types provided by the standard library. For example `std::string` allows you to define your own type/namespace called `string` which wouldn't conflict as long as you maintain `std::string` as separate
+
+We can't use `using` in header files, we deny the `.cpp` files the ability to change the namespace of that variable name. Could create hard to resolve name conflicts. `using` declarations are just a convenience so be conservative with their use.
+
+C++ strings are passed and returned by value. We never have to worry about null terminators in C++ unless you intentionally create a C-style string. C++ strings have their length stored as part of the string object.
+
+### STL
+
+Makes C++ a much higher level language than C.
+
+What is a template? A template is a way to parameterize a class or function by one or more types. 
+
+```c++
+template <typename T>
+struct Node {
+    T data;
+    Node * next;
+};
+```

@@ -263,3 +263,47 @@ we can use matrices to update the system. Have a reaction matrix $R_m$
 >
 > The matrix can be initialized with the other constants as it is defined by the reactions available to the matrix. To update, we just index the row for the reaction and add the value in the row to each of our copy number variables. 
 
+### Molecular Dynamics Simulation
+
+Goal is to analyze the time dependent behavior of a biomolecule in solution.
+
+Applies Newton's Second Law: F=ma or $\frac {d^2x}{dt} = F/m$
+
+Since F = -U(x), we tend to focus on finding a bunch of potential energies. 
+
+The one we will be focusing on for this homework is implementing the Lennard Jones potential which takes the form 
+$$
+V(r) = 4\epsilon ((\frac \sigma {r_{ij}})^{12} - (\frac \sigma {r_{ij}})^{6})
+$$
+Calculate the potential with that equation, then calculate $F_x = \frac {dV}{dr} * \frac {dr}{dx}$
+
+where $r = \sqrt{x^2 + y^2 + z^2}$ and thus $\frac {dr} {dx} = x/r$
+$$
+F_x = -4\epsilon x((-12\frac {\sigma^{12}} {r_{ij}^{14}}) - 6(\frac {\sigma^{6}} {r_{ij}^{8}}))
+$$
+which will be given somewhere.
+
+Because calculating the square root of a number is computationally expensive, leave things as $r^2$
+
+1. Sum over all particle pairs with a double for loop.
+2. Calculate $\Delta x$, $\Delta y$, $\Delta z$ for a particle pair.
+3. Calculate the force
+4. Add force to particle i and substract force from particle j (newtonian force pairs)
+5. Calculate PE as in the MCMC simulation we did for HW2
+
+We need to initialize the velocities of our particles using a standard normal distribution as below and we scale it by the temperature T:
+
+$V_{i,x} = randn()\sqrt{T} - V_{avg}$ 
+
+Then we need to update the positions according to a Taylor Series expansion for the position:
+$$
+x(t + \delta t) = x(t) + v(t) \delta t + \frac 1 2 a \delta t^2
+$$
+then calculate the new force and store it. Then update the potential with"
+$$
+V(t + \delta t) = V(t) + \frac F m\delta t
+$$
+
+
+When we do MD, we are using an NVE ensemble. To check that the algorithm is working, we should make a plot of kinetic energy and potential energy as a function of time to ensure that total energy is constant. 
+

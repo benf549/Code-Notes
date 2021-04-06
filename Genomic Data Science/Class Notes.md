@@ -684,3 +684,18 @@ Has Hemaglutinin and Neuraminidase on its capsid which adhere to cells. Injects 
 
 We can use Reverse Transcriptase to copy the RNA to DNA and PCR that sample to sequence it. 
 
+## 03/02/21
+
+Project 2 is due March 12th. Data is from Illumina MySeq. All can be run locally, but its installed on the server. 
+
+### Metagenomics
+
+DNA is extracted directly from all microbes extracted from the environment. 
+
+The Human Microbiome Project is an effort to study the microscopic things that live on and inside the human body. 
+
+
+
+### Week 8 - Tues
+
+ 
