@@ -1463,7 +1463,7 @@ As we saw, the most basic form of I/O is done with:
 cout << "Hello world!" << endl;
 ```
 
-where `cout` is the standard output, and `<<` is the insert operator so it inserts the thing to the left into the thing to the right. You can chain inserts together to build up  complex statements. Notice, when doing this, we don't need to specify a format specifier like in printf. The program just prints whatever is is passed. 
+where `cout` is the standard output, and `<<` is the insert operator so it inserts the thing to the left into the thing to the right. You can chain inserts together to build up complex statements. Notice, when doing this, we don't need to specify a format specifier like in printf. The program just prints whatever is is passed. 
 
 The `<<` operator is also the bit shift operator. C++ looks at the operands to decide if you want to bit shift. Both operands would have to be integers.
 
@@ -1795,7 +1795,7 @@ The STL solution would be to use a **pair** which allows us to return the two it
 #include <iostream>
 #include <utility> //includes pair and make pair.
 
-using std::pait;
+using std::pair;
 using std::make_pair;
 using std::cout;
 using std::endl;
@@ -2557,3 +2557,545 @@ Image & operator=(const Image & o) {
 ```
 
 Overall, we summarize this in one sentence as: when you implement a non-trivial destructor remember to implement your own copy constructor and assignment operator.
+
+### Template Functions
+
+Templates allow us to write functions or classes once to handle many types
+
+```c++
+template < typename T >
+void fun(const T& input) { ... }
+```
+
+the compiler creates a bunch of overloaded functions with the appropriate input specifications. 
+
+When to use template functions vs overloaded functions?  We should use template functions when the logic that handles the processing of each type is the same. Manually overloading functions is more useful when the logic to handle each type changes. Generally repetitive code is a sign of bad design so we should do whichever works for our purpose and allows us to avoid repeating ourselves. 
+
+```c++
+template <typename T>
+int sum_every_other(const T& ls) {
+    int total = 0;
+    for (typename T::const_iterator it = ls.cbegin(); it != ls.cend(); ++it) {
+        total += *it;
+        if (++it == ls.cend()) break;
+    }
+    return total;
+}
+```
+
+When you pass a given type to this function, the compiler creates the appropriate overloaded function.
+
+`template <class T>` is interchangeable with `template <typename T>`
+
+### Template Classes
+
+So, how do we define a template class? We can do a template struct like so:
+
+```c++
+template <typename T>
+struct Node {
+    T payload;
+    Node *next;
+}
+
+template <typename T>
+void print_list(Node<T> *head) {
+    Node<T> *cur = head;
+    while (cur != NULL){
+        std::cout << cur->payload << " ";
+        cur = cur->next;
+    }
+    std::cout << std::endl;
+}
+```
+
+But what if we want to contain all functions and definitions in a class? Define the template before the class and then you can use it in all of the constructors, methods etc...
+
+```c++
+template <typename T>
+class Node {
+public:
+    Node(T pay, Node<T> *nx) : payload(pay), next(nx) {}
+    
+    void print() const {
+        const Node<T> *cur = this;
+        while (cur != NULL) {
+            std::cout << cur->payload << ' ';
+            cur = cur->next;
+        }
+        std::cout << std::endl;
+    }
+private:
+    T payload;
+    Node<T> *next;
+}
+```
+
+this allows us to use the template for any type.
+
+We actually cannot separate template classes into separate `.cpp` and `.h` files because the compiler works lazily and will only instantiate the template function after the template is used. To do this, the relevant template class needs to be defined already so you can run into issues if the files or separated. To get around this, just define the entire template class in the header file. Lazy instantiation works for the class templates because that is defined in the header file. The problem is when the methods are in a separate source file not included in main.cpp because they have not been instantiated for each of the class templates.
+
+To resolve the problem is to put the function implementation in the `.h` file or define a different file type like  `.inc` or `.inl` and add a `#include "main.inc"` to the main function to make it aware of the function definitions. You can also put the include statement at the end of the header file to avoid having to include it in the main file.
+
+### Inheritance
+
+We use inheritance when we want classes to be related to eachother. For example, a Checking Account is a type of Account. Inheritance is a "is-a" relationship in that one of the objects is a member of the other. This is opposed to being a "has-a" relationship where the object has another object such as a vector as a component which would be a composition or aggregation. 
+
+You can have multiple levels of inheritance where one object inherits from another object which itself inherits from another.
+
+```c++
+class BaseClass {
+    //Definitions for Base Class
+};
+
+class DerivedClass : public BaseClass {
+    //Definitions for Derived Class
+};
+```
+
+here the derived class inherits from the base class through `public` inheritance which passes access of members in the base class to the derived class. `protected` and `private` inheritance are also possible but are rarely used, however, the default inheritance pattern is `private` so you will encounter errors if you do not explicitly add the `public` keyword when defining the inheritance relationship.
+
+###### Access Modifiers
+
+`protected` is an access modifier where fields and functions can only be accessed from member functions of their class or member functions defined in derived classes. So, `public` and `protected` members marked public or protected can be accessed from member functions defined in the derived classes. `private` members cannot be accessed from member functions defined in the derived class. They are still there and can be used by calling base class member functions on the derived class but they cannot be changed by member functions in the derived class.
+
+Derived classes can inherit most members of the base class whether `public`, `private`, or `protected`. Only `public` and `protected` members of the base class can be directly accessed in the derived class. Constructors and assignment operators (recall rule of 3) are not inherited from base class to derived class.
+
+Derived classes cannot delete the things that they inherit and cannot pick and choose what things they inherit. Derived classes can `override` inherited member functions with altered functionality.
+
+```c++
+class Account { //Base Class
+    public:
+    	Account() : balance(0.0) { }
+    	Account(double initial) : balance(initial) { }
+    	void credit(double amt) 	{ balance += amt; }
+    	void debit(double amt) 		{ balance -= amt; }
+    	double get_balance() const	{ return balance; }
+    private:
+    	double balance;
+};
+
+class CheckingAccount : public Account { //Derived Class
+    public:
+    	CheckingAccount(double initial, double atm) : 
+    		Account(initial), total_fees(0.0), atm_fee(atm) { }
+    
+    	void cash_withdrawl(double amt) {
+            total_fees += atm_fee;
+            debit(amt + atm_fee);
+        }
+    	double get_total_fees() const { return total_feses; }
+    private:
+    	double total_fees;
+    	double atm_fee;
+}
+```
+
+since the derived class does not inherit the base class constructor, you need to call the base class constructor to initialize the inherited data members like the `balance` variable in the accounts example. To call the base class constructor, you just call the base class name with any desired parameters. The base class constructor call must be the first thing in the derived class constructor. If the base class constructor is not called, the compiler automatically calls the default constructor and throws an error if such a constructor does not exist. 
+
+Destructors in inheritance: The base class constructor is called when creating an inherited object. The most derived class calls all the previous constructors. Thus when the life cycle of a derived class ends two destructors are called, the destructor for the derived class (first) and the one for the base class (second). Thus, a chain is created when multi-level inheritance is used. The constructor and destructor chains are executed in opposite orders. 
+
+### Polymorphism
+
+We can use functions that are defined to work on a base class on derived classes. Because a `CheckingAccount` is still an `Account`, we can type function arguments as `Accounts` and will be free to pass either plain `Accounts` or `CheckingAccounts` as arguments. 
+
+However, if we have a `.type()` method independently defined in both the `Account` class and the `CheckingAccount` class, since the parameter of the function expects an Account, the `Account::type()` function is called even when a `CheckingAccount` is passed in as the parameter with its own `.type()` function.
+
+We can force the `CheckingAccount::type()` to run by using what is referred to as **dynamic binding**. This is the key to polymorphism. To do this, we make use of the `virtual` keyword for the member function we want to use differently when passed as a base class argument. The `virtual` keyword indicates that the function is allowed to be replaced by something else. 
+
+```c++
+class Account {
+public:
+    ...
+    virtual std::string type() const { return "Account"; }
+    ...
+};
+
+class CheckingAccount {
+public:
+    ...
+    std::string type() const { return "CheckingAccount"; } //don't also need virtual keyword
+	...
+};
+```
+
+now, we can pass a `CheckingAccount` as an argument to a function such as
+
+```c++
+void print_account_type(const Account & acct) {
+    std::cout << acct.type() << std::endl;
+}
+```
+
+and the correct type gets returned. This **only works though because the Account argument is a reference**, if an `Account` copy was made of a `CheckingAccount`, the shared parameters would be copied over and the type would be reported as a normal Account. 
+
+### Dynamic Dispatch
+
+Recall the account example we used above. When we wanted to pass `CheckingAccount` as an `Account` parameter, if we don't use the `virtual` keyword to tell the function to be handled differently depending on whether the function is in the base class or the derived class.
+
+How does the `virtual` keyword work? Need to know how a class is laid out in memory. The stack holds the private variables and values while the code memory segment holds all the member functions for the class. If we have a class that inherits from this class, all the same code memory is used to define the member functions and any new or overloaded member functions are added to this memory after the base class. Since the base class' data is first in the memory, when the derived class is converted to the base class, it just removes the added derived class features. 
+
+When you use the `virtual` keyword, a so-called virtual table is created which holds type information about the object and the address of the member function that should be called. The virtual table is created in the base class and allows overriding of functions by derived classes because it keeps track of the class type that created it. This is contained on the stack. If you don't override the base class implementation in the derived class, nothing happens, it will just use the base class implementation.
+
+When using the `virtual` keyword, you have to make sure the function you call to override the base class function in the derived class is exactly identical down to the placement of  `const` at the end of the function. The return type, parameters, parameter types, and name are used to ensure the functions are the same. You can use the `override` keyword to help debug mismatched parameters, `const` status, and return types.
+
+```c++
+class Account {
+public:
+    ...
+ 	virtual std::string type() const { return "Account"; }   
+	...
+};
+
+class CheckingAccount {
+public:
+    ...
+   	std::string type() override { return "CheckingAccount"; }
+};
+```
+
+`override` indicates that the function is meant to override a virtual function of the same name. The above example **will not work** and the compiler will indicate you need to add the `const` keyword in order to get the expected output. 
+
+What happens if we forget to pass the class by reference? We won't get the overridden function call as the copy constructor is called making an `Account` from the original `CheckingAccount` object.
+
+### Function Hiding
+
+We can have functions with the same names and different parameters inside the base class and derived class without using the virtual keyword. When calling that function on the derived class you will only get the derived class' version and same for the base class. This is function hiding because even if add a `virtual` keyword to the base class, only the derived class function is accessible from the derived class. 
+
+```c++
+class Base {
+    public:
+    virtual void func(int i, int j) const {std::cout << "Base " << i << " " << j << std::endl; }
+};
+class Derived : public Base {
+    public:
+    void func(char c) const {std::cout << "Derived " << c << std::endl; }
+    void func(int i, int j) const override {std::cout << "Derived " << i << " " << j << std::endl; }
+}
+
+int main() {
+    Derived d;
+    d.fun(76, 77); //Derived 76 77
+    d.Base::fun(76, 77); //Base 76 77
+    ((Base &) d).fun(76, 77); //Derived 76 77
+    ((Base) d).fun(76, 77); //Base 76 77
+    return 0;
+}
+```
+
+### Abstract Classes
+
+Abstract classes are classes composed of "pure" `virtual` functions:
+
+```c++
+class Shape {
+    public:
+    	virtual double size() const = 0; //the =0 makes it a pure function
+    	...
+};
+```
+
+when you define a pure virtual function, you are intentionally not defining an implementation in the abstract class and rather, want only to have the implementation defined for the derived classes. The `= 0` is like setting the function to a null pointer. 
+
+You cannot create a new object as just an abstract class type so you will need to define all the functions for the derived type. 
+
+```c++
+class Shape2D : public Shape {};
+
+class Circle : public Shape2D {
+    public:
+    	Circle(double r) : Shape2D(), r(r) {}
+    	double size() const { return 3.14*r*r; } //need to define the size function definied in shape
+    private:
+    	double r;
+}
+```
+
+here only a `Circle` can actually be instantiated because it has a `size()` method.
+
+There is another way to make a class abstract. This is by making the constructor not public (protected).
+
+```c++
+class Piece {
+    public:
+    	...
+    protected:
+    	Piece(bool is_white) : is_white(is_white) {}
+    	...
+    private:
+    	bool is_white;
+};
+
+class Queen: public Piece {
+    ...
+    Queen( bool is_white ) : Piece(is_white) {}
+    ...
+};
+```
+
+so to review, a class is abstract if it has at least one pure virtual function or only has a non-public constructor. We can have pointers and references to an abstract class type, however, we can not directly instantiate one. 
+
+A class that inherits from an abstract class will also be an abstract class if it does not override the pure virtual functions. 
+
+### Virtual Destructors
+
+Since destructors are just functions, if you cast a derived class to a base class directly or through a by reference parameter, if you try to `delete` the object, you end up calling the base class destructor. To get around this, you need to define the base class destructor as virtual. 
+
+```c++
+class Base {
+    public:
+    	Base() : base_memory(new char[1000]) {}
+    	virtual ~Base() {delete[] base_memory; }
+    private:
+    	char *base_memory;
+};
+
+class Derived : public Base {
+    public:
+    	Derived() : Base(), derived_memory(new char[1000]) {}
+    	virtual ~Derived() { delete[] derived_memory; }
+    private:
+    	char *derived_memory;
+};
+```
+
+as a rule of thumb **any class with a virtual member function should also have a virtual destructor** even if it does nothing. 
+
+### Object Oriented Design and UML Diagrams
+
+Inheritance: if you can say every A is a B, then  A is the derived class of the parent class B. In other words, A inherits from B.
+
+Composition and Aggregation: Objects are often related such that every A has a B as a component but A might not necessarily be a type of B. In this case, A would be the containing class, B would be the contained class, and class  A is partially composed from class B. Aggregation is like composition but for collections of several objects.
+
+Examples of is-a relationships: every cat is a mammal, every desk is furniture,  every mammal is an animal. 
+
+Examples of has-a  relationships: every clinic has mammals, every clinic has employees (aggregation), every desk has (one) chair (composition), every clinic has furniture (not every employee has a clinic?) 
+
+###### UML  - Unified  Modeling Language
+
+We will simplify for the purposes of this class. 
+
+Class names go in rectangles, directed arrow goes from derived class A to base class B. Diamond at a containing class A goes to the contained class B.
+
+>For Example:
+>
+>class A---IS-A--->class B
+>
+>class C<>---HAS-A---class B
+
+![image-20210423123533459](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210423123533459.png)
+
+alternatiively:
+
+![image-20210423123610261](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210423123610261.png)
+
+### Enumeration
+
+###### Un-scoped
+
+An enumeration is a distinct type whose value is restricted to a range of values. Essentially a range of several explicitly named constants which are referred to as "enumerators". The values of the constants are integer numbers the identity of which is  determined by the compiler.
+
+```c++
+enum Color {red, green, blue}; //an unscoped enum
+Color r = red;
+switch (r) //we can switch because the enum assigns an integer 'key' to each variable
+{
+    case red: std::cout << "red\n"; break;
+    case green: std::cout << "green\n"; break;
+    case blue: std::cout << "blue\n"; break;
+}
+```
+
+ by default, the compiler will start with zero and add one until it reaches an code-defined value from which it will continue counting from:
+
+```c++
+enum Foo {a, b, c=10, d, e=1, f, g=f+c}; //a=0, b=1, c=10, d=11, e=1, f=2, g=12
+```
+
+the values that you assign can then be cast to their underlying type such as
+
+```c++
+enum color {red, yellow, green=20, blue};
+color col = red;
+int n = blue; //n is 21
+```
+
+but you can manually set the integer type to convert the values to like so
+
+```c++
+enum color:char {red, yellow, green=20, blue};
+```
+
+###### Scoped
+
+To declare a  scoped enumeration type whose underlying type is `int`  you can  use the keywords `class` and `struct` interchangeably.
+
+```c++
+enum class name { enumerator = constexpr, enumerator = constexpr, ...};
+```
+
+for example, 
+
+```c++
+enum class Color {red, green=20, blue};
+Color r  = Color::blue;
+switch(r)
+{
+    case Color::red		:	std::cout << "red\n"; break;
+    case Color::green	:	std::cout << "green\n"; break;
+    case Color::blue	:	std::cout << "blue\n"; break;
+}
+```
+
+Scoping prevents implicitly converting the values to their underlying type
+
+```c++
+enum class Color {red, yellow, green=20, blue};
+Color col = Color::red;
+int n = Color::blue; //This throws a compiler error bc of implicit conversion.
+int m = (int) Color::blue; //Explicit cast to int is allowed.
+int l = static_cast<int>(Color::blue); //also allowed.
+```
+
+and you can also specify the underlying type for a scoped class as for the un-scoped class.
+
+###### Un-Scoped vs. Scoped Enumeration
+
+There is more room for error with un-scoped enumerations. If you have two similar `enum`s and accidently do a comparison test between them, the compiler will allow this for an un-scoped `enum` but will throw an error  for a scoped `enum`. 
+
+Enumerations can be useful especially when doing something like handling return-codes where you don't necessarily care what the number underlying the statement is, but you do want to handle each return code differently. For example:
+
+```c++
+enum class ReturnCode = {..., RECEIVED_TWICE=97, NOT_RECEIVED=98, ...};
+ReturnCode return_code = some_process();
+switch (return_code)
+{
+    case ReturnCode::RECEIVED_TWICE: 	handle_received_twice();	break;
+    case ReturnCode::NOT_REVEIVED:		handle_not_received(); 		break;
+}
+```
+
+using the enumeration is more readable than referring to error codes as integers.
+
+### Exceptions
+
+There are special ways to return errors in C++. We use exceptions to indicate **fatal errors** have occurred where there is no reasonable way to continue from the point of errors. It might be possible to continue from somewhere else but not from the point of the error.
+
+```c++
+int main() {
+    size_t mem = 1;
+    while(true) {
+        char *lots_of_mem = new char[mem];
+        delete[] lots_of_mem;
+        mem *= 2;
+    }
+    std::cout << "Eventually, runs out of memory..." << std::endl;
+    return 0;
+}
+```
+
+the above program keeps allocating bigger and bigger arrays until `new` fails. This throws an exception where the pointer created by `new[]` is unusable but in the current state of the above program, the exception is uncaught.
+
+If you go to the `new/new[]` documentation and look for "On failure", you are told that a `bad_alloc` exception is thrown in the event of an error here. Here are some other types of errors:
+
+![image-20210423131252080](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210423131252080.png)
+
+To handle exceptions, we use `try/catch` blocks.
+
+```c++
+#include <new> //bad_alloc is defined in new
+int main() {
+    size_t mem=1;
+    char * lots_of_mem;
+    try {
+        while(true) {
+            lots_of_mem = new char[mem];
+            delete[] lots_of_mem;
+            mem *= 2;
+        }
+    } catch (const std::bad_alloc & ex) {
+        sed::cout << "Got a bad alloc!" << std::endl; << ex.what() << std::endl;
+    }
+    std::cout << "Eventually, runs out of memory..." << std::endl;
+    return 0;
+}
+```
+
+Here is an array-indexing example
+
+```c++
+int main() {
+    std::vector<int> vec = {1,2,3};
+    try{
+        std::cout << vec.at(3) << std::endl;
+    } catch (const std::out_of_range& e)  {
+        std::cout << "Exception: " << std::endl << e.what() << std::endl;
+    }
+    return 0;
+}
+```
+
+The `try` block marks the block of code where an exception might be thrown. The `catch` block specifies what to do in the event that the error occurs. You can use a higher-level parent classes to catch more general errors. 
+
+The point where the exception is thrown is known as the **throw point**. When the exception is thrown, we don't proceed to the next statement, rather we go through the **unwinding** process which moves up to wider enclosing scopes and stops at a try block with a relevant catch clause. So, you can call functions within the try block and will exit those program's scope all the way up until it finds a try block or hits main in which case the program crashes. Will go backwards until it finds not only a try block but **a catch block handling the specific type of error** or a parent class of the type of error.
+
+When unwinding puts local variables out of scope, their destructors are called.
+
+When indexing an array only the `.at()` method will do index checking. No exception gets  thrown by direct indexing  with pointers like `arr[3]` on a 3 element array.
+
+You can use `throw exception_name` to throw a particular exception at any given time.  
+
+###### Customized Exceptions
+
+We can have multiple catch blocks for different exceptions after a `try` statement. Good practice is to catch the most specific exceptions and end with the least specific exceptions. `std::exception` is the most general and will catch any exception. 
+
+To define a customized exception, just inherit from whichever parent class makes sense. For example
+
+```c++
+class BadCardError : std::runtime_error {
+    public: BadCardError(Card c): std::runtime_error("bad card"), card (c) {}
+    private: Card card;
+}
+```
+
+### Custom Iterators
+
+Suppose we have a linked list of integers. We could have a Node defined like so
+
+```c++
+class ListNode {
+    public:
+    	ListNode(int val, ListNode *nxt) : data(val), next(nxt) {}
+    //private: //would usually be private but public for the example
+    	int data;
+    	ListNode * next;
+}
+```
+
+we could define a for loop that works through all Nodes in the list until it reaches `nullptr` like so
+
+```c++
+for (ListNode* cur = &head; cur != nullptr; cur = cur->next) {
+    std::cout << cur->data  << " ";
+}
+```
+
+whenever there is a need to loop over all elements in a container, we can use an iterator. The code for looping through a linked list looks very different from the code for looping through a vector. To unify the looping logic between objects, we use iterators because they do the same thing despite different implementations. Regardless of what you're doing behind the scenes, the iterator feels like a pointer to successive iterator elements that is easily advanced. Allows the user to not worry about how iteration is actually done. 
+
+There are 4 types of iterators, `iterator`, `reverse_iterator`, `const_iterator`, and `const_reverse_iterator`. A plain iterator traverses elements in a container from beginning to end. A reverse iterator traverses elements from end to beginning. A constant iterator promises not to modify individual elements as it progresses through them. 
+
+To define our own iterator, a pointer may work for objects that lay out their items consecutively in memory, but this isn't a general solution. Rather, we use an entire new class to represent an iterator. We can write our own iterator as a **nested class** which is defined inside the container class. This gives the iterator access to the `private` members of the class. 
+
+As we know from experience at this point an iterator takes the general form:
+
+```c++
+MyType c;
+for (MyType::iterator it = c.begin(); it != c.end(); ++it) {
+    std::cout << *it << std::endl;
+}
+```
+
+so, we need to overload the inequality operator `operator!=`, the dereferencing operator `operator*`, the preincrement operator `operator++`. This is just the bare-minimum,  you might also want equality testing `operator==` and the arrow operator `operator->`. We also need to define `begin()` which returns the iterator to the first element in the collection and `end()` which returns the just-past-last element in the collection for the class. 
+
+A `const` iterator will need a different `operator*` implementation. A `reverse` iterator will need a different `operator++` implementation.  
+

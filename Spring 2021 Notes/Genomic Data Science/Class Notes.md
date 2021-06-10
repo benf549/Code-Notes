@@ -274,7 +274,7 @@ Why is genome assembly a hard problem? It is a very large scale computing task. 
 
 ##### De Bruijn Graphs
 
-Think of every work of length k-1 as an edge on a graph. For every read, find every read of a given length and link that k-mer with an edge representing a k-1 word. 
+Think of every word of length k-1 as an edge on a graph. For every read, find every read of a given length and link that k-mer with an edge representing a k-1 word. 
 
 ![image-20210204151111493](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210204151111493.png)
 
