@@ -6,15 +6,15 @@
 
 Rosetta has over 100 labs, millions of lines of code and thousands of individual licenses. Rosetta can be used for protein structure prediction which has the goal of predicting a protein fold from the primary sequence. CASP is a competition for theoretical groups to predict the structure compared to a previously unknown solved fold. The year 2000 was the first time anyone had produced reliable results at CASP. Gray worked on docking at the CAPRI challenge.
 
-The FoldIt game uses Rosetta under the hood. AlphaFold in 2018 uses deep learning to convert distance matrice into 3D structures. Gray's lab uses DeepH3 to do Antibody structure prediction which can do better than Rosetta in that specific case. 
+The FoldIt game uses Rosetta under the hood. AlphaFold in 2018 uses deep learning to convert distance matrices into 3D structures. Gray's lab uses DeepH3 to do Antibody structure prediction which can do better than Rosetta in that specific case. 
 
 Protein Design milestones: In the late 90s, the Zn finger protein was redesigned without zinc and was still able to fold. A new fold never seen before was created by Kuhlman in 2003. The first De Novo Enzyme was created in 2008. Small Molecule binders were created by Tinberg in 2013. Nanotube Binders were created in 2011. Protein Cages were designed in 2012. 
 
-There are two fundamental problems in the structure prediction and design field. The first is how a protein knows what structure to fold into. Each residue has rotatable bonds and planar groups which give the polymer flexibility. There are more possible conformations for a 300 residue protein to explore than would be possible in the age of the univese. This is Levanthal's Paradox. Say you can solve the sampling challenge, how would we know which one is the correct structure? We can use the minimization of the energy function as per Anfinsen's Dogma. Anfinsen realized this by temperature melting a protein and then cooling it back down and observing that the structure/function was resumed. Rosetta works by this minimization of energy.
+There are two fundamental problems in the structure prediction and design field. The first is how a protein knows what structure to fold into. Each residue has rotatable bonds and planar groups which give the polymer flexibility. There are more possible conformations for a 300 residue protein to explore than would be possible in the age of the universe. This is Levanthal's Paradox. Say you can solve the sampling challenge, how would we know which one is the correct structure? We can use the minimization of the energy function as per Anfinsen's Dogma. Anfinsen realized this by temperature melting a protein and then cooling it back down and observing that the structure/function was resumed. Rosetta works by this minimization of energy.
 
 Some energies we might need to simulate would be Van Der Waals forces as simulated by the Lennard Jones potential, Coulombic Forces as simulated with coulomb force, Hydrogen Bonding which can determine secondary structures, Sidechain Rotamer energy can be predicted statistically by how often you see different sidechain states. 
 
-Rosetta is a type of search strategy which searches different conformations for low energies. Rosetta uses 'fragments' which are 9 residue sequences and generate possible configurations and searches all the known possible conformations. They can also use gradient descent or monte carlo sampling to move throughout an energy surface to find an energy minimum. 
+Rosetta is a type of search strategy which searches different conformations for low energies. Rosetta uses 'fragments' which are 9 residue sequences and generate possible configurations and searches all the known possible conformations. They can also use gradient descent or Monte Carlo sampling to move throughout an energy surface to find an energy minimum. 
 
 Rosetta is object oriented. 
 
@@ -343,7 +343,7 @@ What is a score function for? Basically everything in Rosetta uses a score funct
 
 ![image-20210608093758218](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210608093758218.png)
 
-The centroid mode is easier to see and lower resolution. Generally, we can use centroid mode first to find a region of minima. We can then switch to the full-atom energy landscape which is not as smooth a landscape (it is jagged and more noisy). There is a simplified score function in centroid mode
+The centroid mode is easier to see and lower resolution. Generally, we can use centroid mode first to find a regional minima. We can then switch to the full-atom energy landscape which is not as smooth a landscape (it is jagged and more noisy). There is a simplified score function in centroid mode
 $$
 \Delta E = \sum _i w_i E_i (\Theta_i, aa_i)
 $$
@@ -524,7 +524,7 @@ Optimization. There are several minimizers we can use to find minimal energies. 
 
 Additions to a score function that bias or evaluate certain structural properties of the pose. If you know for some reason that two residues should be bonded (like from experimental data), you can reward structures for putting those residues close together. Can ensure certain residues have a particular dihedral angle, or distances between residues are maintained. You can lock an enzyme at its transition state even if its less energetically favorable with this technique. 
 
-A constraint is defined with three specifications. One of th emost common constraints is `atom_pair_constraint` which is defined for two atoms and adds a penalty if the distance between the two deviates from a certain distance. `angle_constraint`s can be used to constrain an angle between three atoms. You can add a buffer that allows some flexibility in the angle. `dihedral_constraint`s are used to constrain a dihedral angle (defined by a plane) between 4 atoms. 
+A constraint is defined with three specifications. One of the most common constraints is `atom_pair_constraint` which is defined for two atoms and adds a penalty if the distance between the two deviates from a certain distance. `angle_constraint`s can be used to constrain an angle between three atoms. You can add a buffer that allows some flexibility in the angle. `dihedral_constraint`s are used to constrain a dihedral angle (defined by a plane) between 4 atoms. 
 
 There are many other constraint types. `NamedAtomPair`, `NamedAngle`, `CoordinateConstraint`, `AmbiguousNMRDistance`
 
@@ -539,4 +539,125 @@ There are different penalty functions that can be applied to the constraint:
 the y-axis of the line plots represent the penalty we are applying to being in a particular region of the x-axis.
 
 There are also linear penalties, bounded penalties (similar to flat harmonic), `GaussianFunc` and `SOGFunc`, and Specialized Angle Functions.
+
+Boolean-type Logic With Constraints. You can apply an `AmbigousConstraint` which behaves like a constraint connected by a logical `OR` statement. For example, if you aren't sure what atom will be in a particular region but there must be one present such as any carbon of a sidechain or any hydrogen donor. Allows you to bias for particular conformations. 
+
+Multi-Constraint. Behave like constraints connected by the logical `AND`. Stacks multiple constraints. 
+
+What should the weight of the constraints be? The weight multiplied with the constraints is added manually.
+
+```python
+from pyrosetta import *
+init("-constraints:cst_fa_file h_bonds.cst -constraints:cst_fa_weight 2.0"
+```
+
+the default constraint is $1.0$ but you can deviate this if you are looking for something specific. 
+
+To create a new constraint:
+
+```python
+from rosetta.protocols.constraint_generator import *
+apcg = AtomPairConstraintGenerator()
+apcg.set_residue_selector(<residue_selector>)
+apcg.set_max_distance(5.0)
+
+add_csts = AddConstraints()
+add_csts.add_generator(apcg)
+add_csts.apply(pose)
+```
+
+though, the simplest way to use constraints is to read them in from a file. 
+
+You can add constraints onto score functions. `sfx.set_weight(atom_pair_constraint, 1.0)`
+
+Preparing structures from external sources. To prepare structure for Rosetta protocols, relaxing the structure with the native score function is recommended to avoid disrupting the native backbone. `-relax:contrain_relax_to_start_coords`. This adds coordinate constraints to the backbone heavy atoms based on starting structure. 
+
+Metal ion ligands can be immobilized so you can fold around the metal. use `-auto_setup_metals`. You can also create constraints from GREMLIN which is a server that predicts residue-residue contacts. It outputs a constraints file
+
+###### The Rosetta C++ Library
+
+Library Structure and Tour. 
+
+![image-20210610112349616](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210610112349616.png)
+
+The history of Rosetta is conversion from Fortran -> C++ -> wrapping with python. There are some Fortran residuals in `ObjexxFCL` but you are unlikely to need this. `utility` and `numeric` is used for a lot of base-level number crunching operations. `basic` is a tiny library that gives the first impressions of the Rosetta functionality such as holding command line inputs and processing set options and flags. 
+
+In `core` and `protocols` are the real meat of the program. The `core` and `protocols` libraries were split up into components. The `core`s are numbered in order of dependence (`core2` cannot function without `core1` etc). The `protocols` libraries are enormous. `core` contains things like `pose` and `score_function`, `pack_rotamers`. The `protocols` libraries contain functions that bring together components from the `core` library.
+
+`utility` contains useful data structures as very general code and is designed mostly as an addition to the Standard Template Library in C++. For example, `rosetta.utility.vector1_bool` is a vector that indexes from one. 
+
+`numeric` contains generic mathematical methods and relies on data structures contained in the `utility` package. `numeric.conversions`, `numeric.fourier`, `numeric.interpolation`, `numeric.statistics` are some common/useful packages. `xyzVector` is a template class that can hold any type with an x, y and z component. Has dot and cross product member functions, vector normalization, and other vector operations. 
+
+`basic`. Contains the command line options system, tracers which work for "mutable" printing with prefixes indicating where the message originated. The tracers help you identify where errors are coming from.
+
+`core.2` A pretty 'clutch' library that has both a `chemical` and `conformation` layer. The `chemical` describes what it means to be a chemical. A `conformation` is an instance of a chemical that holds coordinates for the atoms of that chemical instance. The conformation can point to the information contained in the chemical and hold its specific conformation data. `ResidueType` describes a graph of chemical connectivity representing chemical bonds as edges and atoms as nodes. Can be used to identify if atoms are within 4 chemical bonds of one-another. Has a set of inter-residue connections which makes the residue aware of being bound to two or more other residues. `Residue` has a list of atoms with coordinates and a residue chemical type. This object is aware of which residues it is chemically bound to via a `connect_map`. `Conformation` is a vector of residues and other conformational representations. `SymmetricConformation` keeps the changes to certain regions the same. Makes the update scheme 'lazy'. It has virtual method functions that are used to enforce symmetry on other subunits (when working in a polymer). 
+
+`core.3` has `pose`, `scoring`, `Energies` and other similar things. `Pose` has a `Conformation` and `Energies`. `ScoreType` is an `enum` C++ object so it gives a numerical index to the different values of the energies. `EMapVector` is a vector of the number of entries in the score type enumeration. `ScoreFunction` contains all the potential calculating methods (take a look at Andrew's paper from 2010 "OO Molecular Modeling Suite" which describes how that works).  
+
+`core.4` contains the `packer` and the `minimizer`. Rarely are neither of these use in a protocol.
+
+`core.5` is where `pose_from_file` and `pose_from_pdb` are found. This invokes the packer. 
+
+`mypose = core.import_pose.pose_from_file( filenames[1] )`
+
+importing a pose can involve packing when a residue is missing data.
+
+In the GitHub repository, the `/source/src/` contains the `utility`, `core`, `protocols` and other libraries that we are talking about. 
+
+The Protocols Library. `simple_moves` (contains a lot of movers), `minimization_packing`, `relax` and so much more. A lot of movers live here. `PackRotamersMover` is a mover that calls the pack rotamers function, `SwitchResidueTypeMover` and others. `MinMover` does minimization. `ReturnSidechainMover` is used for sidechain conformation replacing with conformations from an earlier point in time, this is useful when you switch between centroid mode and then want to switch back to full atom mode. This is a common workflow for docking simulations. When using symmetry, need to use the `SetupForSymmetry` mover to tell the pose how it is symmetric. `relax` contains the `abinitio` folding protocol, which applies fragment libraries and many other very useful protocols. `docking` code is contained in the protocols 4 library. The further down in the protocols importance hierarchy you go, the more specific the use-case will get.
+
+`Loophash` is used when you know secondary structures but want to connect with loops somehow without altering the positioning of the secondary structures. `protocols.loophash`
+
+###### Residue Selectors and Filters
+
+Residue selectors allow you to indicate specific residues in a protein using selection criteria (ex: `ResidueIndexSelector` allows you to select a single residue by index, `ChainSelector` allows selection by PDB chain, `NeighborhoodResidueSelector` allows you to chose a set of residues nearby a central residue and ma). First a selector is applied to a pose which returns a vector the length of the pose and has boolean objects indicating whether each is in the selection or not. 
+
+```python
+import rosetta.core.select.residue_selector as select
+
+ten_selector = select.ResidueIndexSelector(10)
+```
+
+General Selectors. Allow the combination of residue selectors with different criteria. The `AndResidueSelector` selects all selectors while the `ORResidueSelector` selects any residue satisfied by at least one selector. The `NotResidueSelector` can invert the selection. `ReturnResidueSubsetSelector` returns information about the residue selectors that have been already applied to a pose.
+
+We can use Residue Selectors in a `MoveMapFactory` which allows you to create a `MoveMap` that applies only to certain residues. `OperateOnResidueSubset` allows you to restrict repacking to only the specified Residues
+
+Filters. A tool that can provide pass/fail results when applied to a pose. If you are running an expensive simulation, you might be able to quit early if test criteria are failed to save time. This is particularly useful when you are running many simulations at once. 
+
+```python
+from rosetta.protocols import simple_filters
+filter = simple_filters.RmsdEvaluator()
+passes = filter.apply(pose)
+```
+
+filters are not metrics, they only return a boolean. Therefore, you need to decide what your cutoff criteria are.
+
+You can use `SimpleMetrics` to track the calculations made by methods that could be used as filters. Prevents people from needing to hack the filter class to know what the RMSD or other quantities would be. Returns a `std::map`. They can be activated with RosettaScripts and PyRosetta. There is a calculate method that calculates and returns the value for printing or for you to store. The apply method keeps track of the metric in the pose. You can use the `RunSimpleMetricsMover` for analysis and generate `ScoreFile`s that store the information about any simple metrics used to evaluate a trajectory.
+
+###### Fold Trees
+
+We represent our proteins with internal coordinates. We can translate from relative coordinates to cartesian coordinates. Proteins have a very small negative energy difference between the folded and unfolded states. Proteins can rarely afford to deviate from ideal dihedral angles. Also, a dihedral angle is defined by four atoms and is oriented about a central bond. 
+
+Cartesian and Internal Coordinates. Internal coordinates focus sampling on the biologically relevant conformation space. Cartesian coordinates are easier for the score-function to process. We can represent the atoms and bonds with connection graphs. Specifically we use Trees which have only one path between any two points. The tree is a directed graph. Every atom has three degrees of freedom (bond length, bond angle, and torsion angle) we fix the bond length, bond angle, and allow torsion angle to change. This describes the atom tree that is constructed to describe the fold tree. Each chain gets its own atom tree.
+
+Fold Tree. A directed acyclic graph. Is an easy to use wrapper of an `AtomTree`. An `AtomTree` can be generated from a fold tree. The Fold Tree is defined by edges. There are two types of edges. One is a peptide edge where you say the residues between these are all connected by a peptide bond (even when applying to DNA) it just indicates a connection. Jump Edges are edges that aren't bonded to eachother.  
+
+![image-20210611114601278](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20210611114601278.png)
+
+above, the red edges are peptide edges and the black edge is a jump edge. This means chain A is 1-100 and chain B is 111-200. Each jump edge has a positive integer label. Each peptide edge is numbered -1
+
+Stub. A stub is a coordinate frame defined by 3 atoms. It is an x,y,z coordinate and its axes. 
+
+```python
+ft = pyrosetta.rosetta.core.kinematics.FoldTree()
+ft.add_edge(1, 100, -1)
+ft.add_edge(100, 111, 1)
+ft.add_edge(111, 200, -1)
+#Makes the fold tree in the image above.
+pose.fold_tree(ft)
+```
+
+```python
+ft.CheckFoldTree() #Can check the fold tree.
+```
 

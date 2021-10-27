@@ -596,4 +596,3 @@ These statements make sense because recalling the definition of an equivalence c
 
 Proof of equivalence class statements are generally done by manipulating the statements that define the equivalence relation. 
 
-
