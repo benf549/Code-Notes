@@ -2337,18 +2337,916 @@ This says go over the tree level-by level. Start at root and print every node to
 This prints the elements of the list in order. We start at the root, first visit everything to the left first, then print the root, then print the right. We can do this recursively for each subtree from the root. Once we find the leftmost element we print it then go to its parent and print that, then print the nodes on the right of the parent considering each node a subtree. The strategy is Left, Root, Right.
 
 ```java
+inOrder(node) {
+    if (node.left != null) {
+    	return;
+    }
+    inOrder(node.left);
+    print(node);
+    inOrder(node.right);
+}
 
+//Iterators need to be implemented iteratively.
+//O(1) time, but O(N) space in worst case (unbalanced tree). There is a way to implement this in O(1) space, but you need to augment the tree by adding backwards linked pointers to the nodes.
+inOrder_iterative(Node<T> node) {
+    //Need an auxillary space data structure to do this.
+    //Use a stack to recreate the call stack of the recursive implementation
+    Stack<Node<T>> stack = new Stack<>;
+    while (stack.empty() == false) {
+    	pushAsLongAsLeft(stack, node); //As long as there is a left node, add node to stack until left is null.
+        Node<T> toPrint = stack.pop();
+        print(toPrint);
+        node = toPrint.right; //might need to check if right exists
+    }
+}
 ```
-
-
 
 ###### Pre-Order Traversal
 
 This says, do the root first, then print the left, then print the right. This prints the subtree to the left of the root, then the subtree to the right of the root. It recursively visits the left subtree and prints each subtree to the left first until there are no nodes left on the left, then prints the subtree to the right. Prints the root before the subtrees. The strategy is Root, Left, Right. Good order for making a copy of the tree.
 
+```java
+inOrder(node) {
+    print(node);
+    if (node.left != null) {inOrder(node.left)}
+    if (node.right != null) {inOrder(node.right)}
+}
+```
+
 ###### Post-Order Traversal
 
 This says start at the root, then visit everything to its left first, recursively visit everything to the left of that subtree until there are no nodes to the left. Then visit the nodes to the right of the left most element. We then print the rightmost element of the leftmost element and return to the parent of that element and print that since we have already printed the elements to its left and right. We recursively move up the tree printing the parent after its left and right elements are visited. The strategy is Left, Right, Root.
 
+```java
+inOrder(node) {
+    if (node.right != null) {inOrder(node.right)}
+    print(node);
+    if (node.left != null) {inOrder(node.left)}
+}
+```
 
+##### More Tree Terminology
 
+###### Path
+
+a sequence of nodes in a tree such that n1 is the parent of n2 which is the parent of n3 and so on down to n(k-1) which is the parent n_k. It is the edges between nodes from the first node to the last node.
+
+###### Length
+
+The length of a path is k-1 where k is the number of nodes on the path. This is the number of edges between the nodes.
+
+###### Height
+
+The height of a node is the **length of the longest path** from a node to a leaf. The height of a root defines the height of the tree. The height of the BST is indicative of its performance. We can define height recursively:
+
+```java
+public int height(n) {
+    if isLeaf(n) {
+        return 0;
+    } else {
+        return 1 + max(n.left, n.right);
+    }
+}
+```
+
+###### Depth
+
+The depth of a node is the opposite of the height. We also consider this the same as the level of the node. The height of the tree is the depth of its deepest node.
+
+```java
+public int depth(n) {
+    if isRoot(n) {
+        return 0;
+    } else {
+        return 1 + depth(parent(n));
+    }
+}
+```
+
+We can use these terminology to describe unbalanced binary trees. The upper bound on height is a sorted linked list with all elements to the right of the smallest element or all elements to the left of the largest element.
+
+###### A Perfect Binary Tree
+
+Other than the leaves, every node has exactly two children and all the leaves have the same depth or same level.
+
+In a perfect tree, the number of nodes is $2^d$ where d is the depth of the node.
+
+The height of a perfect binary tree is $O(lg(n))$ where n is the number of nodes. To count the number of nodes in a perfect binary tree, we can use the following formula:
+$$
+n = 2^0 + 2^1 + ... + 2^d = 2^{d+1} -1
+$$
+where d is the depth of the deepest node. If you can find d, you can find the height. We can thus, solve for d from the number of nodes:
+$$
+d = ln(n+1) -1
+$$
+So, the height of a perfect binary tree is $O(lg(n))$
+
+###### BST Analysis
+
+The BST provides a reasonably fast implementation of the OrderedSet ADT. The insert, remove, and has operations start at the root and follow a path down to, in the worst case, the leaf at the lowest level. The time complexity of each operation is therefore, $O(h)$ where h is the height of the tree. 
+
+The worst case scenario is an n-node tree that is a linked list with the smallest value at the root and largest value as a leaf to the right. Or the largest value as the root and the smallest value as a leaf to the left.
+
+The best case scenario for insert, remove, and has operations is performed in a situation when the BST is a perfect binary tree. The height of an n-node binary tree is $O(lg(n))$ so, the core operations of the OrderedSet ADT will take $O(lg(n))$ time to run on a collection of n elements. Making the tree as shallow as possible is the best-case scenario.
+
+###### Tree ADT
+
+A general or unrestricted Tree is one where each node has an unlimited number of children nodes. 
+
+```java
+public interface Tree<T> extends Iterable<T> {
+    int size();
+    boolean empty();
+    Position<T> insertRoot(T t) throws InsertionException;
+    boolean root(Position<T> p) throws PositionException;
+    Position<T> root() throws EmptyException;
+    Position<T> insertChild(Position<T> p, T t) throws PositionException;
+    boolean leaf(Position<T> p) throws PositionException;
+    Position<T> parent(Position<T> p) throws PositionException;
+    T remove(Position<T> p) throws PositionException, RemovalException;
+    Iterator<T> iterator();
+    Iterable<Position<T>> children(Position<T> p) throws PositionException'
+}
+```
+
+### Maps and Balanced Binary Search Trees
+
+A map is a collection of key-value pairs. Keys must be **unique** and **immutable**. Maps are also known as dictionaries or associative arrays or symbol tables in other contexts. Sometimes maps and dictionaries are distinguished by dictionaries being allowed to have duplicate keys. The core operations of a map are insertion, removal, and update of the key-value pairs, as well as lookup of a value associated with a particular key.
+
+Maps provide a fast "key lookup" data structure that offers a flexible means of index into its elements. 
+
+Maps are very similar to sets. The keys are unique and can essentially be implemented as a set with extra lookup functionality.
+
+```java
+// K is the type for keys,
+// V is the type for values.
+public interface Map<K, V> extends Iterable<K> {
+    //Insert a new key-value pair. Exception if k is null or already mapped.
+    void insert(K k, V v) throws IllegalArgumentException;
+    //removes the key-value pair from the map and returns the value associated with the key
+    V remove(K k) throws IllegalArgumentException;
+    //Update value at a key, exception if k is null or unmapped.
+    void put(K k, V v) throws IllegalArgumentException;
+    //return the value at a key, throw exception if null key or unmapped key
+    V get(K k) throws IllegalArgumentException;
+    boolean has(K k); //check the existence of a key.
+    int size(); //number of mappings.
+}
+```
+
+This chapter's starter code contains an inefficient implementation of the map with an array similar to that of a set. We should look at it and reason about the asymptotic complexity of the implementations as practice for the midterm. 
+
+This example implementation also uses the built-in java lists for 
+
+###### Balanced Binary Search Trees (BBST)
+
+Want a binary search tree that is self-balancing to keep the operations efficient. 
+
+Recall before we defined a binary tree as a tree where every node has two children. A binary search tree extended this idea by keeping the nodes sorted with an ordering property where a node to the left of the root is less than the root and a node to the right is greater than the root. Here, we define a new (BBST) with a balance property that says that the heights of a nodes left and right subtrees are either equal or differ by at most 1. If a binary search tree is balanced, it has logarithmic height.
+
+How do we programmatically quantify balancing? We add a balance factor to each node in the tree which tracks the height of the left subtree minus the height of the right subtree. 
+
+```java
+bf(node) = height(node.left) - height(node.right);
+
+public int height(node) {
+	if (node == null) {
+        return -1;
+    } else if (isLeaf(node)) {
+        return 0;
+    } else{
+        return 1 + max(height(node.left), height(node.right));
+    }
+}
+```
+
+A BST is then balanced if for every node, the balance factor is 1, 0 or -1. 
+
+Do the examples in the chapter for midterm practice
+
+### AVL Trees
+
+Named after its creators. Provides a way to correct a BST to ensure it remains balanced. This ensures that any operation performed on these trees is optimally $O(lg(n))$. 
+
+These operations need to be efficient as there is no point in keeping the tree balanced if the operations make maintaining the tree less efficient than $O(lg(n))$.
+
+There are 4 patterns that can create an unbalanced BST.
+
+###### Structural Rotation
+
+Given 3 values, there are 3! ways to insert these values in to the tree and thus, that many ways to build valid trees with them. Which value serves as the root changes the balance of the tree. 
+
+Any unbalanced BST, can be modified into a balanced BST. 
+
+Both removal and insertion can cause incorrect balancing.  
+
+###### Single Right Rotation
+
+Notice that of the ways we can create a balanced BST from 3 nodes, a **right rotation** can be defined as the operation in which the node in the middle gets promoted to the root and the node that was previously the root gets demoted to the right child of the middle node. This is the correction that needs to be applied when **the problem is in the left subtree of the left child** from the perspective of the unbalanced parent node. 
+
+Example 3 in the nodes for right rotation shows an example where the unbalanced parent node is the great grandparent of the node that caused the imbalance. To correct this, we have to move 7 up, make 14 its right child, and make 11 the left child of 14. 
+
+![image-20211101133250757](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20211101133250757.png)
+
+How can we implement a single right rotation generically?
+
+![image-20211101134620039](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20211101134620039.png)
+
+```java
+Node<T> rightRotation(node<T> root) {
+    Node<T> leftChild = root.left;
+    root.left = leftChild.right;
+    leftChild.right = root;
+    root = leftChild;
+    return root;
+}
+```
+
+###### Single Left Rotation
+
+The opposite problem as that resolved with single right rotation. This is when the issue arises in the **right subtree of the right child**.
+
+![image-20211101141718852](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20211101141718852.png)
+
+###### Right-Left Rotation
+
+When the problem with our tree is in the **Right Child's left subtree**, we need to apply a right rotation, followed by a left rotation:
+
+![image-20211101141901334](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20211101141901334.png)
+
+###### Left-Right Rotation
+
+Resolves the same but opposite problem to the previous rotation. This is needed when the problem is in the **Left Child's Right Subtree**
+
+![image-20211101141953987](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20211101141953987.png)
+
+###### Detecting These Rotations Programmatically
+
+By looking at our balance factors, we can tell if the subtree is left or right heavy. A positive balance factor is left heavy while a negative balance factor is right heavy.
+
+| Imbalanced Node                        | Child's Balance Factor is `-1` (right heavy) | Child's Balance Factor is 1 (left heavy) |
+| -------------------------------------- | -------------------------------------------- | ---------------------------------------- |
+| **Balance Factor is -2 (right heavy)** | Left Rotation                                | Right-Left Rotation                      |
+| **Balance Factor is +2 (left heavy)**  | Left-Right Rotation                          | Right Rotation                           |
+
+It is not possible to need to apply more than one rotation upon insertion. However, it is possible to need to apply rotation up to lg(n) times up to the root upon removal.
+
+Try the structural rotation exercise before implementing the homework assignment. 
+
+### Priority Queue
+
+Recall that a queue works on a first in first out basis. A priority queue works by taking elements of higher priority over an element that may be first in the queue if it is of lower priority. Think an IT desk ticketing system or distributing limited computer resources.
+
+We typically implement this with priority defined by the natural ordering of the elements. If the two elements have the same priority, they are dequeued on a first-come-first-serve basis. For example, if we have a priority queue of integers, we dequeue by lowest value.
+
+To motivate the functionality of the priority queue we have the following example:
+
+###### `Submission` Class, Comparator vs Comparable
+
+Represents a homework submission made by a student. Among its attributes are:
+
+```java
+private int positionInQueue;
+private String student;
+private int numPriorSubmission;
+```
+
+Process submissions in the order they are received. Thus, submissions are comparable to one another, based on the order they were received. 
+
+```java
+@Override
+public int compareTo(Submission other) {
+    return this.positionInQueue - other.positionInQueue;
+}
+```
+
+ `Collections.sort(submissions)` can be used to sort submissions using the definition of `compareTo`
+
+Java takes the `compareTo` function to be the natural ordering of the elements. We can also call `Collections.sort(submissions, new LessSubmissionHigherPriority)` with a second argument which is an instance of a `Comparator`. A comparator implements the `compare` function whereas a `comparable` implements the `compareTo` function.
+
+```java
+private static class LessSubmissionHigherPriority implements Comparator<Submission> {
+    @Override
+    public int compare(Submission s1, Submission s2) {
+        return s1.getNumPriorSubmission() - s2.getNumPriorSubmission();
+    }
+}
+```
+
+both `compare` and `compareTo` return the same type of integer where a > b indicates that a comes after b.
+
+Know the difference between comparator and comparable for the homework and exams. There are several explanations in the lecture notes to review before the midterm. 
+
+In our `priorityQueue`, we define two constructors. The first constructor uses the natural order of its parameters while the second constructor uses a comparator to overwrite the natural ordering of the elements.
+
+###### Priority Queue Implementation
+
+Regardless of the implementation, if we keep the array sorted, we can find the first element in $O(1)$ since it will just be the first element.
+
+To implement the priority queue with an array, we keep the best element at the end of the element and just remove it by decrementing numElements assuming we sort the array so that the best elements are at the end of the array. Insertion is $O(N)$, we need to find the element to insert after and copy the elements.
+
+To implement the priority queue with a linked list, we can keep the best element at the head and the next best attached to the head. We just removeHead to remove the element. If we want to insert into the sorted linked list, we can't do better than $O(N)$ since we still have to find the element in the linked list and cant binary search on a linked list. 
+
+The best priority queue implementation, thus uses a tree data structure which can find the elements in O(lg(N)) time with insertion and removal in O(1) time.
+
+###### Binary Heap
+
+The aforementioned data structure we will use to implement a tree-based priority queue. This is also sometimes just referred to as a heap. The structure of a heap is a **complete** binary tree which limits its height to $O(lg(N))$ and the order of the heap means that each element stored at each node has a higher priority than its children. The ordering implies that the best element is always the node at the root.
+
+But what is a complete binary tree? This is what differentiates the heap from a BST. A BST only has to have the structure of a binary tree. A  **complete** binary tree is one where the tree is "full" on all levels except possibly the last level which must have all of its nodes on the left side.
+
+![image-20211103173519126](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20211103173519126.png)
+
+This is a slightly looser condition than the perfect binary tree where all leaves had to be on the same level. You can check if a tree is a complete binary tree by ignoring the lowest layer of leaves. If the remaining nodes form a perfect binary tree, then the tree is complete. 
+
+The ordering of the BST is such that the left node is less than its parent and the right node is greater than its parent. The ordering of the heap implies that the priority of its children are no better than itself.
+
+###### Heap Order Property
+
+The binary heap must be ordered in one of two ways. Either **min-heap** in which the value of each node is less than or equal to the value of its children with the minimum value  element at the root or **max-heap** in which  the value of each node is greater than or equal to the value of its children with the maximum-value element at the root. 
+
+A complete binary tree can be very creatively stored in an array which massively simplifies its implementation. To do this,  we store the elements in level-order in the array. For convenience we ignore the index-zero the array. Considering the $K^{th}$ element  of  an  array, the left child is found at the index $2*K$ and  the right child is found at the $2K+1$ index. The parent of the $K^{th}$ element is found at the $k/2$ index.
+
+###### Binary Heap Implementation
+
+To implement the `best` function, we just return the value at the root.  To implement the `insert` function, we have to insert at the next leaf slot from the left. To add an element, We just add the new element to the end of the array. Then we need to fix the ordering of the heap. To do this, we swap the child with its parent until, its children and parent fit the ordering criteria (depends on if min or max heap implementation). Since the value swims up, the worst case is that the value starts as a leaf and swims all the way up to become the root. The height of the tree is $O(ln(n))$ so in the worst case, insertion is logarithmic. `remove` is always done at the root, we can do this, by replacing the target value with the last element of the array and decrementing the number of elements of the array. Now that we have a value at the root which may violate the ordering property, we need to let this value sink down until the ordering is restored. The worst case you start at the root and travel down to a leaf. This has a worst case time complexity of $O(lg(n))$ which is still better than an array or linked list implementation. When we swap the value at the root, we swap the root with the better of the two children, so that the ordering is preserved. 
+
+This is an extremely clever data structure :)
+
+### Treap
+
+Say we have a sequence of numbers that is inserted into a BST, if we randomly shuffle these numbers, we can get trees that better approximate the logarithmic height of the random height. Linear order is very unlikely to occur from random shuffling. If we knew all the keys to insert into a BST, just 1 shuffle with give a BST that is probabilistically within the bounds of $O(lg(N))$. In a Treap, we don't know the values ahead of time, but we can assign random priorities to the values as we insert them which we can use to structurally rotate the tree and obtain balanced trees within $O(lg(N))$.  
+
+###### Insertion
+
+To insert an element into a treap, we can generate priorities in  the range of 0 to 1.  If we keep a max-heap (higher priority is higher in the heap). When inserting, we want the nodes with higher priority closer to the root of the tree. We could swap the elements, but this would violate binary search tree ordering. To fix this, we can rotate the tree as in the AVL tree. We only need to handle rotation left and rotation right.
+
+There are two properties we need to maintain: The binary search tree aspect of  the data structure requires that the order of the values of the nodes follow that of a BST. This means that the value of the left child is less than the parent and the value of the right child is greater than the parent. The heap aspect of the treap requires that the order in which the values are arranged in the treap is sorted by priority. This means that the priority of  any children nodes  must be less than that  of the parent, otherwise we need  to apply structural rotation. A treap  must  both be structured  as a BST and the order is sorted by the priorities.
+
+![image-20211105020109271](C:\Users\benfy\OneDrive - Johns Hopkins\Documents\Markdown Notes\.images\image-20211105020109271.png)
+
+where the BST is sorted by the letters or values at the nodes and the priority is indicated by the  associated integers. The largest integer is at the root and the order is alphabetically sorted.
+
+### Hash Tables
+
+Binary trees gave us a way to do the core operations of a set or a map in logarithmic time. Is there a way to do this in constant time? Yes (amortized constant time) with a hash table. 
+
+The core of a hash table is that given a key, we have some function that converts that key to an index in the hash table. We map a key to a 'unique' index. To insert, we just get the index and insert at that insertion which can be done in constant time. If the function that maps a key to an index is constant time, the insert, update, and search functions are all constant time. 
+
+This function is called a **hash function** and the process is called hashing. The first step of a hash function is to generate a numerical representation for the key. This is called a generating a **hash code**. We can really easily do this in a computer since everything is represented as numbers or memory addresses. The next step is to convert the hash code to a smaller range as the hash codes are likely bounded by the size of integers on the computer. We need to move the hash code to a smaller range from 0 to M. This process is called **compression**.
+
+A good hash function is:
+
+* <u>Uniform</u>: which means it maps keys to array indices as evenly as possible. Ideally you have an equal likelihood of generating each index value. A non-uniform hash function is called biased.
+* <u>Deterministic</u>: which means a given key is always mapped to the same index so we can look it up after insertion. If this doesn't happen, this whole process doesn't really work as we wouldn't be able to find that index again.
+* <u>Cheap:</u> which means that the operation is simple and fast to compute. Just because the hash function is constant time, doesn't mean that it happens quickly. The process could take a crazy amount of time independently of the size of the input and still bee constant time. We need the hash function to work quickly.
+
+The faster the has function is, the more performant the whole data structure is.
+
+We typically break the two responsibilities of hashing into two. There is an element which generates its own hash code which is the type that gets inserted into the data structure. The data structure itself is responsible for mapping the hash codes to a smaller range since the structure of the data structure will determine the range we map into.
+
+###### Generating Hash Codes
+
+The Java Object class has a `hashCode` method which generates hash codes for any element. The default way to generate a hash code for user defined objects is to hash the memory location of the object. This would be problematic if two identical objects were stored at different memory locations and we want them to be treated the same by the hash map. Thus, we should override the `hashCode` method for user-defined classes, but can generally use the default implementation for basic data types. You also would need to override the `equals()` method to define how hash codes should be compared.
+
+For our purposes, we will not be implementing the `hashCode` function since we care about building hash tables and not hashing data. We will however, worry ourselves about the compression process since this is a component of the data structure.
+
+###### Compression
+
+To map the hash code to our desired range M, we can just apply the modulus operator:
+
+```java
+int index = key.hashCode() % M; //where M is the non-inclusive maximum value of the range.
+```
+
+The problem with doing this is that as the size of M decreases, we are more likely to have collisions between indices.
+
+#### Handling Index Collisions
+
+A **collision** occurs when more than one key is mapped to the same array index. In any practical application, the set of possible keys is much larger than the set of indices we have available to fill. It would be impractical to have a data structure that is the size of the input set. This is an example of the Pigeon Hole Principle from discrete mathematics.
+
+There are two main collision handling techniques:
+
+##### Open Addressing
+
+This technique says, go to the index of the collision and insert the value for the key at the next available open index. There are different techniques for locating the next open location to insert into which is called **probing**. 
+
+Linear probing is when we just move to the next open index in the list:
+
+```java
+int index = getIndex(key);
+//if table[index] is occupied, then
+for (int i = 0; i < M; i++) {
+    index = (getIndex(key) + i) % M; //modulo allows wrapping around to indices before the original index
+    //stop the loop when we find an unoccupied index
+}
+//if we get here and haven't inserted the key, the table is full and we need to expand it
+```
+
+This works, however when we delete an element from the hash map, if there is an element after it that hashed to the same thing, our find operation will stop prematurely since there is an empty spot after the ideal index indicating no further keys that map to the same index are in the map. But, this isn't true there is an element after the empty spot. To resolve this, we can insert a sentinel value after removal that functions as a **tombstone** and indicates to the find function to keep searching after the index is removed. The entry is thus removed from the index,  but it is not deleted fully. This can be done by flagging the element as deleted, but without actually doing anything else to the value. This is known as **lazy deletion**.
+
+To implement the tombstone, we can create our array of **Entry** objects that track whether they are deleted or not as well as the generic type they hold. Our remove operation can then work by using an `isDeleted` boolean. Another option is to insert a sentinel object that is an object that we can insert into the hash table.
+
+How will tombstones affect the efficiency of the data structure? If we remove a lot of elements, most of the data structure is populated by useless data. The more tombstones, the more likely we are to have to perform O(N) finding. We can treat deleted nodes as available for insertion. Which can help decrease the number of tombstones. Is it safe to overwrite at tombstones? No! If we tried to insert a value already in the hash table, we would write it into the tombstone potentially before finding that the value is already there. Maybe we could continue the search after marking the position of the tombstones, but this increases the complexity of inserting. Alternatively, we can just ignore tombstones, but this brings us back to the problem of filling the data structure with junk data.
+
+###### Contamination and Rehashing
+
+This problem of of tombstones preventing search from terminating prematurely is because tombstones waste space and reduce search efficiency. In the worst-case scenario, if the table is almost full of tombstones from deleting most of the items, then we have O(N) searching despite only a few items remaining in the table. This problem is called **contamination** and the solution to it is **rehashing**.
+
+Rehashing is analogous to dynamic array resizing. We consider the hash table "full" if we have inserted until there are no more indices available for insertion or if the table becomes contaminated with tombstones. Unlike growing an array, we can't just copy the values from the original collection to the new one. Since we allocate a new hash table with double the size of the original, we have to reinsert the old table entry into the new hash table by recalculating its index with the new table size. We also don't want to re-insert the tombstones which would waste our space.
+
+###### Load Factor ($\alpha$)
+
+The load factor of a hash table is a way of quantifying how full  the table is. Very simply:
+$$
+\alpha = \frac {number\ of \ filled\ cells}{table\ capacity}
+$$
+this generates a number between [0, 1] which if it is closer to 0, indicates that the table is nearly empty and if it is closer to 1 indicates that the table is more full.
+
+When the load factor reaches a given threshold, **rehashing** kicks in. Since rehashing increases the capacity, it reduces the load factor. $\alpha \le 0.75$ is a good threshold for rehashing determined by benchmarking which we could give the user the option to set like Java does. Maintaining lower load factors means faster operations at the tradeoff of higher memory overhead. 
+
+With amortized analysis, we want to increase the size of the table by multiplicative size increases. Doubling is easier to prove efficiency in amortized analysis, but there is an added caveat that we want to choose the smallest prime number above double the size of the table to be our new table size.
+
+###### Table Size
+
+Why do we want to choose the smallest prime number larger than the desired table size? The idea is that generally if we choose the index as the hash code with a modulus of M. For every key returned by hash code, every K that shares a common factor with M will be hashed to multiple positions of this factor. To minimize the collisions, we can reduce the number of common factors between K and M by choosing M to be a prime number.
+
+If both the hash code and the size of the table were even as would be created by doubling, the indices generated would always be even. Memory addresses are always even so this would bias the table to only fill even numbers. In real life application from linear probing this doesn't really affect performance that much but theoretically using a prime number is better. 
+
+Rather than having a function that generates prime numbers as this would be expensive, just create a list of known primes and remember which prime was used last incrementing to get the next value. If we exceed the prime number list just start doubling the largest value since it probably wont make much of a difference at this scale.
+
+###### Linear Probing Analysis and Overview
+
+So we have that in the best case, insert/remove/find are done in O(1). The worst-case scenario is when the probing sequence goes over every occupied position. This scenario leads to O(n) performance where n is the number of items stored in the hash table. 
+
+For the average case performance, given an open-address hash table with load factor $\alpha$, the expected number of probes in an unsuccessful search is at most:
+$$
+O(\frac{1}{1 - \alpha})
+$$
+this can be proved by assuming the hash table employs a uniform hash function and applying basic probability. This is out of the scope of the class but is good to know that the average performance is some kind of number, not a function of the size of table. The choice of alpha changes the efficiency and is on average constant time.
+
+###### Primary Clustering and Problems with Linear Probing
+
+The problem with linear probing is that it tends to create clusters of keys in the table resulting in long search chains. The existing cluster will act as a "net" that catches many of  the new keys which get appended to the chain and exacerbate the problem. 
+
+If there is a 10% chance for a key to get stored at any index, a 3 element index cluster, the next element after the cluster has a 40% of getting the next element since it is impossible to insert at occupied nodes.
+
+###### Quadratic Probing
+
+This technique says to jump indices in the hash table using a constant size stride increases:
+
+```java
+int index = getIndex(key);
+// if table[index] is occupied then
+for(int i = 0; i < M; i++) {
+    index = (getIndex(key) + i*i) % M;
+    //stop when table[index] is available
+}
+```
+
+this creates increasingly large steps in the search sequence and avoids primary clustering. It is possible to miss indices depending on the size of table and the way we are jumping. In this case, we can increase the size of the table or fail to insert. Maintaining a prime table size and reasonable load factor will prevent this from happening.
+
+Since we make exactly the same step sizes, we still get clusters of data when things collide to the same index. However, the clusters should be more spread out and distributed throughout the table. This is called secondary clustering.
+
+###### Double Hashing
+
+To eliminate secondary clustering,  we could use another hash function that takes in the key to be inserted and the hash code informs the jump function of a step size to use. 
+
+```java
+int index = getIndex(key);
+// if table[index] is occupied then
+for(int i = 0; i < M; i++) {
+    index = (getIndex(key) + hash(key)*i) % M;
+    //stop when table[index] is available
+}
+```
+
+which is interesting in that the different keys create different step sizes so clustering is less likely to happen and we can find the key the same way every time.
+
+In practice, non-linear probing doesn't really improve efficiency that much so its really only interesting in academic contexts for finding  the  absolute best solutions. 
+
+##### Chaining
+
+This technique stores all colliding elements in an auxiliary data structure like a linked list. Each position in the hash table can be thought of as a bucket that stores multiple entries. Thus, this approach is sometimes called **bucket hashing**.
+
+A linked list can be used where we just addFront any new elements and linear search through the elements in the bucket when we hash to an index.
+
+###### Chaining Analysis
+
+In the best case, we are lucky and the number  of elements  inserted  is smaller than the capacity of the table and unique indices were generated for each key. In this case, insert, remove, and find are all O(1).
+
+In the worst case, a bad hash function has mapped all of the keys to the same index. In this case we just have a singly linked list and insert, remove, and find are all linear time O(N).
+
+Chaining with a uniform hash function should distribute elements evenly among elements. We expect each bucket to be of size $n/M$ where n is the number of items stored in the hash table and M is the size of the hash table. We define this as our load factor for chaining hash maps:
+$$
+\alpha = n/M
+$$
+The performance is thus, $O(\alpha)$ in the average case. If we keep $\alpha \lt 1$, we get an expected constant runtime operation. The performance also depends on the choice of auxiliary data structure. The most common is a linked list. We could also use an array or a self-balancing binary search tree.
+
+Java uses chaining hash maps with a linked list which switches to a BST when the number of elements exceeds a pre-set limit determined by benchmarking. 
+
+## Unit 3
+
+### $O(Nlg(N)))$ Sorting
+
+#### Heap Sort
+
+Use a binary heap to improve sort efficiency.
+
+```java
+private static void sort(Integer[] data) {
+    PriorityQueue<Integer> pq = new PriorityQueue<>();
+    for (int i = 0; i < data.length; i++) { //O(N*lg(N))
+    	pq.add(data[i]); //O(lg(N))       
+    }
+	for (int i = 0; i < data.length; i++) { //O(N*lg(N))
+    	data[i] = pq.remove(); //O(lg(N))
+    }
+    //data is now sorted.
+}
+```
+
+The time efficiency of this algorithm is $O(N*lg(N))$ and the input space efficiency is O(N) and the auxiliary space efficiency is $O(N)$ so total space complexity is $O(N)$. This is like a more efficient form of selection sort. Finding the smallest element in the selection sort is handled by the binary heap which is why it was created.
+
+We can actually further improve this which eliminates the priority queue and reduces the auxiliary space.
+
+#### Floyd's (bottom-up) Heapify
+
+Since the binary heap can be implemented in an array, we can just restructure the input data array into a binary heap. Interpret the input data as a binary heap, then move the values until the problems are solved. Floyd said look at the bottom, find a problem, let that node sink down and repeat until problems are solved. 
+
+To start, look at the leaves. Since they don't have any children, we are done. Next, look at the next layer up, look at the first subtree and its children (which we can calculate based on the index). If the element being looked at is not better than its children, swap with the better of the two children. Move up to the next layer and repeat. 
+
+After swapping with child, need to check child is valid in the context of its children (may need to sink down multiple layers).
+
+Also recall, we ignored `idx==0` in our original implementation of array-based heap, now we need to correct our indices since we are using the zero index. 
+
+We now no longer need the priority queue. 
+
+```java
+for (int i = numElements; i > 1; i--) {
+    sink(i);
+}
+```
+
+We improve this by ignoring the leaves at first. Can we calculate where the leaves are from the length of the array? We can since the number of leaves in each layer is just $2^d$ where $d$ is the depth of the layer. If we have n leaves, there are $n = k+(k-1) = 2k-1$ nodes where k is the number of leaves. Solving for k, there are $\lceil n/2 \rceil$ leaves and $\lfloor n/2 \rfloor$ nodes elsewhere.
+
+```java
+for (int i = numElements/2; i > 1; i--) { //implicitly floor division
+    sink(i);
+} 
+```
+
+But how is this operation linear $O(N)$? Imagine the worst case where every single layer needs to be moved downwards to the leaves. The first layer requires $0*n/2$ swaps. The second layer requires $1*n/4$ swaps. The third layer requires $2*n/8$ swaps and so on to the last layer which requires $lg(n) * 1$ swaps. We can write this sum taking into account the fact that we are operating on a complete and not perfect binary tree with the following formula:
+$$
+\sum_{h=0}^{\lfloor lg\ n \rfloor} \lceil \frac{n}{2^{h+1}} \rceil h
+$$
+where h is the height of the tree.
+
+Using summation rules, we can show that the time complexity of this sum is:
+$$
+O(n\sum_{h=0}^{\lfloor lg\ n \rfloor} \lceil \frac{h}{2^{h+1}} \rceil) < O(n\sum_{h=0}^{\lfloor lg\ n \rfloor} \frac{h}{2^{h}}) < 
+O(n\sum_{h=0}^{\infin} \frac{h}{2^{h}}) =2
+$$
+so we have a total time complexity of $O(2N) = O(N)$.
+
+The top down algorithm has a larger time complexity. Each level has longer paths to consider and you can't eliminate half of the items in the first pass.
+
+The end result of creating a binary heap in the input array is an array that is ordered for a heap but is not sorted. If we implement the `remove` function to move the root to the end of the array and sink down the promoted element, if we decrement `numElements`, we can repeat the removal process until there are no more elements to remove and at this point, the array will be sorted from smallest to largest assuming we have used a max heap as we will move the largest elements to the end of the array in order.
+
+```java
+for (int i = numNodes / 2; i >= 1; i--) {
+    sink(data, i, numNodes);
+}
+
+for (int i = numNodes; i >= 1; i--) { //still NlgN but improves speed and auxiliary space
+    swap(data, 1, numNodes--);
+    sink(data, 1, numNodes);
+}
+```
+
+#### Merge Sort
+
+##### The Merge Algorithm
+
+Suppose we have two sorted arrays of data and want to merge them into a larger sorted array. We can start by looking at the first elements of each array, then copy the lowest element in the two arrays into an output array. Then we increment a pointer to the next element in the array we just copied from. We then compare that element to the element in the first array we are pointing to and then copy to the next index in the output array. We repeat this process until there are no more elements in the two input arrays.
+
+```java
+private static void merge(int[] arr, int left, int mid, int right) {
+    //sorted portion starts at index left, ends at index right-1
+    //mid is the index that separates two sorted portions (second portion starts)
+    int i = left;
+    int j = mid;
+    int k = 0;
+    
+    int[] tmp = new int[right - left];
+    while (i < mid && j < right) {
+        if (arr[i] < arr[j]) {
+            tmp[k++] = arr[i++];
+        } else {
+            tmp[k++] = arr[j++];
+        }
+    }
+    
+    while (i < mid) {
+        tmp[k++] = arr[i++];
+    }
+    
+    for (int l = 0; l < k; l++) {
+        arr[left + l] = tmp[l];
+    }
+    
+}
+```
+
+##### Recursive Implementation
+
+Begin by viewing each index as a sub array of size 1. They are trivially sorted. Merge them pairwise to get sorted 2 element subarrays. Repeat merging until the whole array is sorted. By only applying the merge process, we can create a completely sorted array.
+
+Apply the divide and merge process where we recursively break the array down into subarrays and then merge them into a sorted array.
+
+```java
+public static void mergesort(int[] arr, int left, int right) {
+    if (right - left < 2) {
+        return;
+    }
+    
+    int mid = (left + right) / 2;
+    //arr[left, mid-1]
+    mergesort(arr, left, mid);
+    //arr[mid, right-1]
+    mergesort(arr, mid, right);
+    if (arr[mid - 1] > arr[mid]) {
+    	merge(arr, left, mid, right);
+    }
+}
+```
+
+The divide process takes $O(lgN)$ steps to break the array down into singletons. Then the merge process takes $O(NlgN)$ steps to combine the singletons and merge the sorted arrays. Overall the runtime complexity is $O(NlgN)$.
+
+##### Early Stop Heuristic
+
+We can optimize merge sort to stop in $O(N)$ when the input is already sorted. Just check if the last element in the left array is less than the first element in the right array before merging, if it is we don't need to merge.
+
+#### Quick Sort
+
+Has an average case runtime of $O(NlgN)$ and worst case runtime of $O(N^2)$. Most sorts in programming languages are implementations of quicksort.
+
+The big picture idea is to randomly pick an index in the array and call it the **pivot element**. We then apply **partitioning** which makes every element to the left of the pivot element less than or equal to it and every item to the right of it greater than or equal to it. This ensures that the list is sorted relative to the pivot element and thus the final position of the pivot element has been found. 
+
+We then apply partitioning to the left subarray and the right subarray independently. This process is naturally recursive.
+
+##### Partitioning
+
+Take the rightmost element as the pivot, take a left pointer that starts at the beginning of the array and a right pointer that starts at the second to last element. Start at left pointer and check if the value is less than the pivot, if it is advance the pointer, otherwise wait. Then check the right pointer, if it is greater than the pivot, advance otherwise wait. If both waiting swap the elements. Once the pointers are equal, swap with the pivot.
+
+```java
+private static int partition(int[] arr, int left, int right) {
+    int p = right - 1;
+    int r = p - 1;
+    int l = left;
+    
+    while (arr[l] < arr[r]) {
+        while (arr[l] <= arr[p] && l <= r) { //O(n)
+            l = l+1;
+        }
+
+        while (arr[r] >= arr[p] && l <= r) { //O(1)
+            r = r-1;
+        }
+    	swap(arr, l, r);
+    }
+    
+    if (l < r) { //O(1)
+    	swap(arr, l, p);
+    }
+    return l;
+}
+```
+
+##### Sort Implementation
+
+```java
+private static void quicksort(int[] arr, int left, int right) {
+    if (right - left <= 1) {
+        return;
+    }
+    int pivot = partition(arr, left, right);
+    quicksort(arr, left, pivot);
+    quicksort(arr, pivot + 1, right);
+}
+```
+
+To analyze the time complexity of the algorithm, first look at the partition function. Since we never revisit the elements of the array, we only traverse the array once so the partition function is $O(n)$. 
+
+The worst case time complexity of the algorithm overall is when the sequence values are already sorted. The partition algorithm will always select the next smallest or largest element making two subarrays of size n-1 and 0 elements. This means we have to run over all elements $O(n)$ times where we call partition each time meaning the overall time complexity in this case is $O(n^2)$. In the worst case it functions basically like selection sort.
+
+In the best case, the sequence values are not in sorted order and rather in a random order. Each recursive call to quicksort approximately divides the array into two subarrays of size $n/2$. It takes $lg(n)$ calls to quicksort to get down to singleton arrays. Therefore we call partition $O(lg(n))$ times which has a total time complexity of $O(nlg(n))$.
+
+In the average case, we are most likely to select an element in the middle of the distribution of data to sort, so we tend to select items in the average case. The data probably follows a normal distribution. We should try to select the median if we could, but to do this, we would have to sort the data. If you want to improve the runtime, you can select the median of the leftmost, rightmost, and middle element which is called the **median of the three**. Using this median as the pivot tends to work the best in the average case and the improvement can be proven using sampling statistics. Java's implementation works by sampling every 10 elements. If we want to implement the median of three, just find it and swap with the rightmost element and then proceed as normal.
+
+Java switches to insertion sort when `n<7`, merge sort for `collections.sort`, and `arrays.sort` uses quicksort. When sorting over collections (complex types), merge sort ensures that the sort is **stable**. This is not guaranteed for quicksort. The point with this is if you have elements that are distinct but equal in the eyes of the sort algorithm (think unique memory locations or something). Merge sort guarantees that the order of the elements is preserved between sorts. Another example is sorting an Excel table by one column first and then sorting another column. Equal elements in the second sort will not change order from the first sort. This is a **stable** sort. Quicksort is not a stable sort because it can swap the relative positions of 'equal' elements.
+
+Review which algorithms are stable (there is a page on this at the end of the quicksort chapter) before the final exam.
+
+### Graph Basics
+
+Graphs are a way to formally represent a network or collection of connected objects. We call the objects **nodes** or **vertices** and the connections **edges** or **arcs**. 
+
+In mathematics, the vertices are a set and the edges are a set of sets which contain the vertices the edges connect.
+
+```java
+public interface Graph<V,E> {  
+    Vertex<V> insert(V v) throws insertionException; //inserts a new vertex, exception if v null or already in graph.
+    Iterable<Vertex<V>> vertices(); //vertices of the graph, iterable over all graph vertices (in no particular order).
+    //Insert a directed edge (from -> to) with data E. Position exception if vertices invalid, Insertion exception if insertion would create a self-loop or a duplicate edge. E is allowed to be null.
+    Edges<E> insert(Vertex<V> from, Vertex<V> to, E e) throws PositionException, InsertionException. 
+    Iterable<Edge<E>> edges(); //edges of the graph, iterable over all the edges (no particular order)
+    //get the vertex the edge is from/to
+    Vertex<V> from(Edge<E> e) throws PositionException;
+    Vertex<V> to(Edge<E> e) throws PositionException;
+    //iterables for getting vertex's outgoing or incoming edges. Position exception if the vertex is invalid.
+    Iterable<Edge<E>> outgoing(Vertex<V> v) throws PositionException;
+    Iterable<Edge<E>> incoming(Vertex<V> v) throws PositionException;
+    //Remove methods. RemovalException for vertex if the vtx still contains incident edges.
+    V remove(Vertex<V> v) throws PositionException, RemovalException;
+    E remove(Edge<E> e) throws PositionException;
+
+    //Methods to handle vertex and edge labelling. Can be labelled with any Object not necessarily of the same type 
+    void label(Vertex<V> v, Object l) throws PositionException;
+    void label(Edge<E> e, Object l) throws PositionException;
+	Object label(Vertex<V> v) throws PositionException;
+	Object label(Edge<E> e) throws PositionException;
+    
+    void clearLabels();
+}
+
+public interface Edge<E> extends Position<E> {
+}
+
+public interface Vertex<V> extends Position<V> {
+}
+```
+
+to use the vertices iterable you can do something like:
+
+```java
+for (Vertex<V> v: graph.vertices()) {
+    System.out.println(v.get());
+}
+```
+
+We can implement two types of graphs, directed and undirected graphs which differ in the way the edges are implemented. Our graph implementation is a general interface for **directed graphs**. You can use a directed graph to represent an undirected graph if you just insert two directed edges with the same data in opposite directions. 
+
+Our `insert()` function is overloaded to handle both vertices and edges.
+
+An edge that connects a vertex to itself is called a **loop** and a graph that contains loops is called a **pseudograph**. There can be **multiple** edges (parallel, as in same direction, edges between the same endpoints). Graphs with parallel edges are called **multigraphs**.
+
+A **simple** graph is one in which there are no **loops** or **multiple edges**.
+
+Not every vertex has to have edges attached to it, in this case the vertex is **an isolated vertex**. Graphs with isolated vertices are **not connected**. In a **connected graph** it is possible to get from every vertex to every other vertex in the graph through a series of edges.
+
+Our graph implementation should represent a <u>directed simple graph</u>. 
+
+We include methods to return the vertex that corresponds to the start or end of a given edge called `from` and `to`. By using a position object, the client cannot mutate the values stored in the edge. It just returns the values and does not allow setter methods.
+
+**Adjacent Vertices** are those which are connected directly by an edge. Two adjacent vertices forming an edge are said to be **incident** to the edge they create. **Outgoing** edges are directed edges that the vertex is the origin. **Incoming edges** of a vertex are directed edges that the vertex is the destination. 
+
+Our graph implementation returns iterables which provide the outgoing and incoming edges for a given vertex.
+
+We also provide remove methods to remove a vertex or an edge. We are <u>not</u> allowed to remove a vertex that still has **incident edges**.
+
+A **Labelled Graph** is one in which labels are attached to the vertices or edges or both. When the label values are real numbers, the graph is called a **weighted graph**.
+
+$N$ denotes the number of vertices and it is the size of the vertex set. $M$ denotes the number of edges and is the size of the edge set. Our graphs have a positive integer number of vertices, M can be as small as zero for a not connected graph and a non-simple graph could have infinite edges with finite vertices. For a simple connected graph, the minimum number of edges is $N-1$ since there has to be a path from every node to every other, the maximum number of edges is ${{n}\choose{2}} = \frac{n(n-1)}{2}$ as is in a **complete graph** where every node is connected to every other.
+
+The **degree** of a vertex is the number of edges *incident* to v (a loop counts as two edges) the degree of a vertex is denoted $deg(v)$ furthermore, we have property:
+$$
+\sum_{v\in V} deg(v) = 2M
+$$
+We can represent graphs in several different ways:
+
+* Adjacency Matrix Graphs use an NxN matrix where element $(i,j)$ is 1 only if the edge $(v_i, v_j)$ is in E.
+  * Takes up $O(N^2)$ storage.
+* Adjacency List Graphs are a list of lists where each list corresponds to a vertex $u$ and contains a list of vertices adjacent to it. For an undirected graph every adjacent vertex is in a given vertex's list. For a directed graph, only vertices where an edge originates from a given vertex are included in the list.
+  * $O(N+M)$
+* An Incidence List Graph has each vertex keep track of a list of edges that are incident to it.
+  * Sometimes, other references refer to incidence lists as what we have defined as an adjacency list.
+  * $O(N+M)$
+  * Because you need a list of vertices, each edge has a list of its adjacent vertices and the size of the list is equal to the degree of that vertex, so the total size is the sum of the degree of all vertices which we showed previously is $2M$
+
+A **sparse** graph has relatively few edges and $M$ is closer to the lower bound $\Omega(N)$. A **dense** graph has many edges and M is closer to the upper bound $O(M^2)$. The choice of graph representation will depend on whether the problem at hand is more likely to be a sparse or dense graph.
+
+If the graph is sparse, adjacency lists are the most efficient.
+
+### Graph Search
+
+There are a lot of interesting problems that can be reduced to a graph search problem.
+
+The **neighborhood** of a vertex is the set of all vertices adjacent to a vertex $v$. We can separate these into the incoming and outgoing neighbors in a directed graph. 
+
+A **path** is a sequence of connected edges in a graph. We can define a path as the sequence of vertices where each vertex is adjacent to the vertex next to it. A **simple** path is a path that does not repeat any nodes or edges we almost always mean **simple paths** when we talk about paths. A directed path is one where you can travel only in the direction the arrows indicate.
+
+The **Graph Search** problem is figuring out if a graph G contains a path from one vertex to another. The general search problem is given a starting vertex, identify the set of all vertices reachable from s in G. By definition, you can reach the vertex itself.
+
+```pseudocode
+mark s as "explored" all other vertices as "unexplored"
+	while there is an edge (v,w) in E with v explored and w unexplored
+		choose some edge (v,w) //this is underspecified
+		mark w as explored
+```
+
+When we go to choose some edge, we have two choices for how to do this:
+
+* Breadth-First Search **BFS**
+* Depth-First Search **DFS**
+
+#### Breadth-First Search
+
+We explore the graph according to a queue which keeps track of the neighbors of A. We add the neighbors to the queue and then pop the first one and look  at its neighbors. The ones that are unexplored, we add to the queue after marking them as explored. Once the queue is empty, we know we have explored everything.
+
+This is the same as level order traversal in a binary tree.
+
+We visit the nodes that are closest to us first and then expand our search.
+
+```pseudocode
+mark s as "explored" all other vertices as "unexplored"
+queue data structure initialized with s
+	while queue is not empty
+		remove vertex from front of Q and call it v
+		for edge (v,w) in v's neighborhood
+			if w is unexplored then
+				add w to queue
+				mark w as explored
+```
+
+#### Depth-First Search
+
+Instead of using a queue, use a stack. Repeat the same process, pushing and popping, but the stack changes the way you explore the tree.
+
+This is the same as something like in-order traversal in the binary search tree. Explores the first branch as far as possible before backtracking.
+
+```pseudocode
+mark s as "explored" all other vertices as "unexplored"
+stack data structure initialized with s
+	while stack is not empty
+		remove vertex from front of stack and call it v
+		for edge (v,w) in v's neighborhood
+			if w is unexplored then
+				add w to stack
+				mark w as explored
+```
+
+#### General Asymptotic Analysis
+
+The while loop executes in O(N) in the worst case. The edge iteration for loop can be done in $O(N)$ for an adjacency matrix or $O(deg(vi))$ since we execute the degree loop N times for each vertex, we have the degree sum formula which tells use we run that block $2M$ times. So, our search can be done in $O(N+M)$ = $O(n)$ linear time.
+
+### Shortest Path Problem
+
+We can modify the graph search problem to identify paths from the root to any node. Rather than tracking just explored vertices, also record previous vertices which got us to the vertex we are currently looking at. Since you have recorded the previous vertex for each vertex, after you run the modified DFS/BFS you can take the endpoint and follow the previous nodes back to the starting node. If the end vertex was unexplored, there is no path.
+
+```pseudocode
+previous = {} //map from vertex to vertex
+explored = {} //map from vertex to boolean
+explored[s] = true
+previous[s] = s //special token to tell search we started here could be anything.
+queue.enqueue(s)
+while (!queue.empty())
+	v = queue.dequeue()
+	for (w in adjacency[v])
+		if (!explored[w])
+			explored[w] = true
+			queue.enqueue(w)
+			previous[w] = v
+stack s;
+while node != source {
+	s.push(node)
+	node = previous[node];
+}
+s.push(node)
+while !s.empty()
+	print(s.pop())
+```
+
+We should probably use a hash map for previous and explored data structures. You could also use parallel arrays as long as you keep track of the index properly and the size, this might cause a linear search if not done properly though so hash maps would give the best performance. You could also incorporate the previous/explored information in the vertex object itself which would make the operations exactly O(1) rather than expected amortized O(1) which is objectively worse.
+
+We can also modify DFS/BFS to give us the distance of a node from a starting node where instead of tracking previous, we track the distance (number of nodes) from the starting node and after exploring the graph, we can just look up the distance from the starting node.
+
+To properly explore a directed graph, we just only consider the outgoing edges.
+
+This gives us a path, however we want the shortest path. If we have edge weights, we need to change the way we consider distance. If we want the minimum total weight (cost), we change our implementation again. 
+
+If the graph is not weighted **BFS gives shortest path** or if all the weights are the same. If the graph is weighted, then BFS is not guaranteed to give the shortest path. This makes sense since we explore the closest vertices first and then the vertices farther away. This guarantees a shortest path.
+
+#### Dijkstra's Algorithm
+
+The algorithm is similar to BFS. We do not mark A as explored by default. We only mark a vertex as explored after we are 'done' with it. We also track the unexplored vertex with the smallest distance where we mark A as explored and travel to the neighbors without marking them as explored.
+
+```pseudocode
+for every u: unexplored_neighbor(v)
+	d := Distance[v] + Weight[v,u] //add distance from source to current node plus distance to neighbor
+	if d < Distance[v]
+		Distance[u] = d
+		Previous[u] = v
+```
+
+There is a comprehensive example for Dijkstra which will make sure you understand so try it before implementing in the homework.

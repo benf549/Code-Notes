@@ -1,3 +1,5 @@
+
+
 # Midterm 1 Review
 
 *Benjamin Fry*
