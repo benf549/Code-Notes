@@ -10,7 +10,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "Modeling The Living Cell/Class Notes.md",
+            "file": "Fall 2021/Academic Research/Fall_2021.md",
             "mode": "source"
           }
         }
@@ -69,7 +69,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Modeling The Living Cell/Class Notes.md",
+                "file": "Fall 2021/Academic Research/Fall_2021.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -85,6 +85,7 @@
     "width": 300
   },
   "lastOpenFiles": [
+    "Fall 2021/Academic Research/Fall_2021.md",
     "Modeling The Living Cell/Class Notes.md",
     "Modeling The Living Cell/Problem Sets/Problem Set 2.md",
     "Intermediate/Video Notes.md",
@@ -93,7 +94,6 @@
     "Modeling The Living Cell/MATLAB.md",
     "Fun Code/Machine Learning Basics.md",
     "Spring Zoom Links.md",
-    "Genomic Data Science/Class Notes.md",
-    "Fun Code/Linear Algebra.md"
+    "Genomic Data Science/Class Notes.md"
   ]
 }

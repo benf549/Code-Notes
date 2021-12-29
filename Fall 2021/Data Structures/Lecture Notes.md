@@ -3250,3 +3250,101 @@ for every u: unexplored_neighbor(v)
 ```
 
 There is a comprehensive example for Dijkstra which will make sure you understand so try it before implementing in the homework.
+
+### Minimum Spanning Tree
+
+A **Tree** is a connected, acyclic graph meaning every vertex can be accessed from another and there are no cycles which are paths where traversal results in ending back at the node you started at. A cycle is also known as a closed path, these may also include repeated edges. We generally want to look at simple cycles where repeating edges is not allowed. 
+
+A **Spanning Tree** of a connected undirected graph G is a *subgraph* of G that **spans** G which means it includes every vertex of G. Spanning trees are not unique to the graph, many possible connections can be made but the order of connection can be done different ways. You can create spanning trees by applying BFS/DGS.
+
+If there are weights associated with traversing the edges, the **minimum spanning tree** is the spanning tree (or trees if there are duplicate weights) that has the lowest total edge weight.
+
+#### Prim's Algorithm
+
+A Greedy Algorithm that grows an MST from a source vertex.
+
+Since you have to visit every vertex, randomly start at one. Then consider the adjacent nodes and pick the node connected by the smallest edge. Once you have picked $n-1$ edges, you can stop since this is the minimum number of edges to connect n nodes.
+
+You start with an empty MST, pick a random vtx that is not in the MST and add the lowest weight edge that connects it to a vertex in the MST and add the vtx to the MST repeating until there are $n-1$ edges.
+
+So, how do we implement these? Whenever we want a "minimum" ordering of things, we probably want to use a priority queue. At the beginning of the algorithm, we want to add edges to the priority queue that are adjacent to vertices in the MST. We then travel the lowest edge to the next vertex and check that we haven't already visited the incident nodes. The size of the priority queue is on the order of the degree of the vertices (M) and removal is O(lg(M)). 
+
+Since we need to call insert and remove O(M) times, we end up with an O(Mlg(M)) algorithm which is better then the quadratic naïve implementation
+
+#### Kruskal's Algorithm
+
+Take all of the edges and sort them. Then pick the smallest edges and check for cycles. Once you have selected n-1 edges, you are done.
+
+If we were using an array, we could index for the edge, we can access in O(1) but building the array requires sorting which needs O(MlgM) time.  We could also use a priority queue which is O(M) insertion and O(lgM) removal. 
+
+We need a way to know if a vertex is already in the MST. We want to find a way to tell if there is a path between two vertices already in the MST. We can use BFS/DFS to find if there is a path. If we were to do this, we would need to run graph search over every vertex in O(M) which times the linear efficiency of BFS/DFS would be quadratic search.
+
+We want a way to find a way to track what vertices are connected.
+
+The data structure we will need to do this is the Union Find Data Structure. If you implement Kruskal's algorithm with a union-find data structure, 
+
+### Union Find Data Structure
+
+We need a way to dynamically and efficiently maintain information about the connected components of a graph. 
+
+This is also known as the **disjoint-set** or **merge-find** data structure.
+
+This is related to sets because we can think of the disconnected components of a graph as two sets. If we add an element to the data structure, we want to take the union of these two sets. 
+
+The core operations of the union-find data structure are:
+
+```java
+makeSet(x); //creates and returns a singleton set with x as the element
+find(x); //returns some representation of the set that x belongs to.
+union(x,y); //merges the sets containing x and y
+
+//may also include
+connected(x,y); //returns true if x and y are in the same set.
+count(); //returns the number of disjoint sets.
+```
+
+To initialize the data structure, each vertex needs to be put into its own singleton set. Once we select an edge, we merge the sets that have the vertices of that edge.
+
+There are two implementations we might use:
+
+* Quick Find
+* Quick Union
+
+#### Quick Find
+
+An integer array of length N. Initially each object is in its own singleton set. We say that two vertices p and q are connected if they have the same integer ID in the array. When we need to 'find' the set that a vertex belongs to, we essentially just want to know the ID of that vertex in the integer array. If two vertices do not have the same ID, they are not connected yet so we can add an edge. If they are connected, they will have the same ID so we wouldn't add an edge in this case. 
+
+When you connect sets however, you need to update the ID of every vertex that has the same ID as the vertex that got updated.
+
+In this implementation, find is O(1) but union is O(N)
+
+#### Quick Union
+
+We can get a more efficient union by creating another integer array and interpreting the ID's differently.
+
+When we connect vertices, now we connect by making the ID of the newly connected vertex, the index in the array to the vertex it is connected to. This links the second vertex to the original vertex. We are establishing a "parent-child" relationship with the IDs. When we want to know if the vertices are connected, we can trace backwards to the root (has same index as ID) and if two vertices have the same root, they are connected.
+
+To do the union, we just set the vertex's id equal to the index of the vertex its being connected to.
+
+However, there is additional nuance with this approach. If we connected C and D earlier and then connect B to D, we would overwrite D with the index of B when D was previously holding the index of C. Now, we don't know that C and D are connected. We can connect C directly to the root (might need to go back the lecture and figure this out im not really sure what he meant but the next part is a better implementation anyway). The worst case for this approach is when the height of the tree is large. So there are some approaches to ensuring that the children of the root are managed better.
+
+When you need to join two disconnected trees, connect the root of the second element to the root of the first element. 
+
+##### Weighting
+
+Is the process by which we modify the union find data structure to keep track of the size of each component and balance the tree by linking smaller trees below larger ones. We want to link the tree with less nodes to the root of the tree with more nodes.
+
+Adding the smaller tree to  be the child of the larger tree ensures that the union does not make the height of the tree larger since the smaller tree is not of a larger height. At worst, the depth of any node is $lg(N)$
+
+We need a way to keep track of the number of elements in each tree. Ideally we would keep track of the depth of the trees but we just use the number of nodes in each. 
+
+##### Path Compression
+
+Once you compute the root of a node, set its parent directly to the root so that the next time you search for its parent, you only perform one check.
+
+This ensures that the height of our trees get shallower as well call the union and connect operations.  
+
+#### Overall
+
+When you implement union by size and path compression, the operations can be done in O(lg* N) where lg* is the iterated logarithm of N which is the number of time one needs to apply lg to N to get a value less than or equal to 1. This grows waaaaaaaaaaaaaaaay slower than even lg(N) and we call this operation **Near-Constant Time**
+
