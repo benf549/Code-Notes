@@ -6,12 +6,12 @@
       {
         "id": "ca2056ff5cc51af5",
         "type": "leaf",
-        "active": true,
         "state": {
           "type": "markdown",
           "state": {
-            "file": "Fall 2021/Academic Research/Fall_2021.md",
-            "mode": "source"
+            "file": "Academic Research/Spring 2022 Lab Notebook.md",
+            "mode": "source",
+            "source": false
           }
         }
       }
@@ -69,10 +69,12 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Fall 2021/Academic Research/Fall_2021.md",
+                "file": "Academic Research/Spring 2022 Lab Notebook.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
                 "backlinkCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -82,18 +84,20 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 226,
+    "collapsed": true
   },
+  "active": "ca2056ff5cc51af5",
   "lastOpenFiles": [
+    "Academic Research/Spring 2022 Lab Notebook.md",
+    "Untitled.md",
+    "Network Data Science.md",
     "Fall 2021/Academic Research/Fall_2021.md",
     "Modeling The Living Cell/Class Notes.md",
     "Modeling The Living Cell/Problem Sets/Problem Set 2.md",
     "Intermediate/Video Notes.md",
     "Intermediate/Class Notes.md",
     "Intermediate/C Notes - Kernighan.md",
-    "Modeling The Living Cell/MATLAB.md",
-    "Fun Code/Machine Learning Basics.md",
-    "Spring Zoom Links.md",
-    "Genomic Data Science/Class Notes.md"
+    "Modeling The Living Cell/MATLAB.md"
   ]
 }

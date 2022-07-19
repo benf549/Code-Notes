@@ -85,6 +85,7 @@ Here is a table to keep track of which RSCB PDB IDs correspond to which files:
 | 4NCO      | hiv_relaxed.pdb        | hiv_glycan.pdb         | hiv_raw.pdb        |
 | 6VXX      | scv2_spike_relaxed.pdb | scv2_spike_glycan.pdb  | scv2_spike_raw.pdb |
 | 5W1K      | junv_relaxed.pdb       |                        |                    |
+| 6M0J      | scv2_rbd_relaxed.pdb   |                        |                    |
 
 Okay so while doing that, I realized that last week I accidentally created the glycoprotein for Lassa Virus spike protein rather than for flu hemagglutinin which is fine because I was going to do it now anyways, but I need to remember that things I called Flu before are actually lassa. I am running flu, hiv, and scv2 spike now. I need to remember that the folder called ACTUAL flu is indeed actually flu whereas the other folder is actually Lassa virus. I can tell just by looking at the PDBs but this isn't easy since its on the server. in summary `Flu_Benchmark_CWG_Copy` is actually a cwg run for Lassa virus but I can't rename it today since I'm running the benchmarking script on the Lassa glycosylations. Once condor job `13596364.0` completes It should be good to delete.
 
@@ -147,34 +148,4 @@ I interpret this as meaning if there are no overlaps, you can definitely exist a
 The 99% confidence interval was calculated numerically because the CDF function in `scipy` seems to be giving me lower values for probability than I think should work. This is probably because it's handling the asymptote at zero weirdly.
 
 I started rewriting the combinatorial selection algorithm to use clustering like we had discussed over the summer. I wrote a backbone but havent added much substance yet. Looking at using the agglomerative clustering with decreasing pairwise distance until you get clashes with the collision grid that exceed the newly benchmarked cutoff. We also want to implement a way to target a particular region with sugars. I think we could do this by finding the shortest distance of a given position to a sugar from the ./pp and present the user with an option for amount of destabilization that we allow for that sugar. 
-
-# Intersession 2022
-
-Rewrote the combination selection component of the `./find_optimal_combinations` script. Using the findings from the above research on acceptable overlap for a pair of sugars, removed bounding sphere projection and combinatorial enumeration and replaced this with random sampling of the file names and pairwise checks of selected sugars with a sugar being evaluated for selection. If over $0.3$ of the sugar voxel cloud being evaluated is occupied, the sugar is not selected. I want to step through different confidence intervals to generate more potential combinations for evaluation, also perhaps create the constructs rather than just outputting a text file. I also moved the virtualization of native glycans to virtualize the `_0` samples which was not happening before. Extra structures we wish to avoid are pre-loaded into the collision grid matrix which should add additional collisions to selected. 
-
-I may need to check that the initial sugar which we pop from the file_names array does not exceed the overlap threshold from the additional structures in the matrix which is unlikely but may be possible if someone loads in a lot of structures. 
-
-Currently running the script to test the moved virtualization code and initial results look promising. I think the next thing to do is to find some confidence intervals of interest which we want to output combinations for which could potentially be used to experimentally validate the algorithm!
-
-Visual inspection of the combinations generated appears to be well distributed on the surface as desired!
-
-Recalculated 99, 98, 97, 95, and 90 percent confidence intervals for pairwise glycan overlap to be allowed and reworked the output to generate a text file with combination structures for each as well as create an output directory with all of the sugars and sampled conformations. I want to create the constructs with at least the sequon mutations and potentially glycosylate them as part of the output. Perhaps I could leave it up to the user to run `./build_native_glycans` after the sequons are introduced. 
-
-Updated the find optimal selection code to output the constructs which can then be passed through build native glycans script. I realized that some of the sequons overlap so I think I want to only select a sugar if its sequon doesn't overlap with that of any other in the selections which should be easy to do. Once this is done, we should have a pretty solid algorithm!
-
-Maybe find a way to allow coordinate input which builds "antibody" cloud at a desired site even if no antibody is known to bind there? maybe not and just tell user to dock w/ receptor or manually cull introduced PNGS.
-
-# Spring 2022
-
-## Week 1 (1/23/2022)
-
-Debugged combination generation updates from intersession work and set up and full-length protocol tests for both generating glycan conformations as well as reading them in from sampling files. 
-
-Need to schedule meetings with Dr. Kulp/John and Dr. Gray to look at future directions. I want to see if its time to draft a manuscript for this work or if there are more benchmarks/experimental work that needs to be done.
-
-## Week 2 (1/31/2022)
-
-Got published in Cell Reports for voxelization data structure woo!
-
-Working on creating a powerpoint of research updates for John/Dr. Kulp to get them up to date with the work that I did last semester and over intersession. 
 
